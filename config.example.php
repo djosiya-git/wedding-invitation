@@ -7,7 +7,7 @@ return [
     'db_driver' => 'mysql',
     'db_host' => 'localhost',
     'db_name' => 'dwebindi_invitation',
-    'db_username' => 'dwebindi_invitation',
+    'db_username' => 'dwebindi',
     'db_password' => 'change-this-db-password',
     'db_charset' => 'utf8mb4',
 ];

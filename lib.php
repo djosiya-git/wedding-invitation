@@ -84,9 +84,40 @@ function init_db(PDO $pdo, string $driver): void {
     } else {
         $pdo->exec("CREATE INDEX IF NOT EXISTS idx_guests_invitation ON guests(invitation_slug, name)");
     }
+    if ($driver === 'mysql') migrate_sqlite_invitations($pdo);
     migrate_json_invitations($pdo);
 }
 function invitation_path(string $slug): string { return __DIR__.'/storage/invitations/'.basename($slug).'.json'; }
+function migrate_sqlite_invitations(PDO $pdo): void {
+    $path=__DIR__.'/storage/database.sqlite';
+    if(!is_file($path)) return;
+    try {
+        $old=new PDO('sqlite:'.$path);
+        $old->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $old->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        $tables=$old->query("SELECT name FROM sqlite_master WHERE type='table' AND name='invitations'")->fetch();
+        if(!$tables) return;
+        foreach($old->query('SELECT * FROM invitations') as $d){
+            if(empty($d['slug'])) continue;
+            $exists=$pdo->prepare('SELECT 1 FROM invitations WHERE slug=?'); $exists->execute([$d['slug']]);
+            if(!$exists->fetchColumn()){
+                $stmt=$pdo->prepare('INSERT INTO invitations (slug,title,template,status,replacements,created_at,updated_at) VALUES (?,?,?,?,?,?,?)');
+                $stmt->execute([$d['slug'],$d['title'],$d['template'],$d['status'],$d['replacements'],$d['created_at'],$d['updated_at']]);
+            }
+        }
+        $hasGuests=$old->query("SELECT name FROM sqlite_master WHERE type='table' AND name='guests'")->fetch();
+        if(!$hasGuests) return;
+        foreach($old->query('SELECT * FROM guests') as $g){
+            $exists=$pdo->prepare('SELECT 1 FROM guests WHERE invitation_slug=? AND name=? AND phone=?');
+            $exists->execute([$g['invitation_slug'],$g['name'],$g['phone']]);
+            if($exists->fetchColumn()) continue;
+            $stmt=$pdo->prepare('INSERT INTO guests (invitation_slug,name,phone,group_label,note,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)');
+            $stmt->execute([$g['invitation_slug'],$g['name'],$g['phone'],$g['group_label'],$g['note'],$g['status'],$g['created_at'],$g['updated_at']]);
+        }
+    } catch (Throwable $e) {
+        error_log('SQLite migration skipped: '.$e->getMessage());
+    }
+}
 function migrate_json_invitations(PDO $pdo): void {
     foreach(glob(__DIR__.'/storage/invitations/*.json')?:[] as $p){
         $d=json_decode(file_get_contents($p),true); if(!is_array($d) || empty($d['slug'])) continue;
