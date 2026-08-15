@@ -15,38 +15,75 @@ function templates(): array {
 function db(): PDO {
     static $pdo;
     if ($pdo) return $pdo;
-    $dir = __DIR__.'/storage';
-    if (!is_dir($dir)) mkdir($dir, 0775, true);
-    $pdo = new PDO('sqlite:'.$dir.'/database.sqlite');
+    $c = cfg();
+    $driver = $c['db_driver'] ?? 'sqlite';
+    if ($driver === 'mysql') {
+        $charset = $c['db_charset'] ?? 'utf8mb4';
+        $dsn = 'mysql:host='.($c['db_host'] ?? 'localhost').';dbname='.($c['db_name'] ?? '').';charset='.$charset;
+        $pdo = new PDO($dsn, $c['db_username'] ?? '', $c['db_password'] ?? '');
+    } else {
+        $dir = __DIR__.'/storage';
+        if (!is_dir($dir)) mkdir($dir, 0775, true);
+        $pdo = new PDO('sqlite:'.$dir.'/database.sqlite');
+    }
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-    init_db($pdo);
+    init_db($pdo, $driver);
     return $pdo;
 }
-function init_db(PDO $pdo): void {
+function init_db(PDO $pdo, string $driver): void {
     static $done = false; if ($done) return; $done = true;
-    $pdo->exec("CREATE TABLE IF NOT EXISTS invitations (
-        slug TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        template TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'draft',
-        replacements TEXT NOT NULL DEFAULT '[]',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-    )");
-    $pdo->exec("CREATE TABLE IF NOT EXISTS guests (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        invitation_slug TEXT NOT NULL,
-        name TEXT NOT NULL,
-        phone TEXT NOT NULL DEFAULT '',
-        group_label TEXT NOT NULL DEFAULT '',
-        note TEXT NOT NULL DEFAULT '',
-        status TEXT NOT NULL DEFAULT 'pending',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL,
-        FOREIGN KEY(invitation_slug) REFERENCES invitations(slug) ON DELETE CASCADE
-    )");
-    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_guests_invitation ON guests(invitation_slug, name)");
+    if ($driver === 'mysql') {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS invitations (
+            slug VARCHAR(191) PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            template VARCHAR(100) NOT NULL,
+            status VARCHAR(30) NOT NULL DEFAULT 'draft',
+            replacements LONGTEXT NOT NULL,
+            created_at VARCHAR(40) NOT NULL,
+            updated_at VARCHAR(40) NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS guests (
+            id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            invitation_slug VARCHAR(191) NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            phone VARCHAR(80) NOT NULL DEFAULT '',
+            group_label VARCHAR(120) NOT NULL DEFAULT '',
+            note TEXT NULL,
+            status VARCHAR(30) NOT NULL DEFAULT 'pending',
+            created_at VARCHAR(40) NOT NULL,
+            updated_at VARCHAR(40) NOT NULL,
+            CONSTRAINT fk_guests_invitation FOREIGN KEY(invitation_slug) REFERENCES invitations(slug) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+    } else {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS invitations (
+            slug TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            template TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'draft',
+            replacements TEXT NOT NULL DEFAULT '[]',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS guests (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            invitation_slug TEXT NOT NULL,
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL DEFAULT '',
+            group_label TEXT NOT NULL DEFAULT '',
+            note TEXT NOT NULL DEFAULT '',
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY(invitation_slug) REFERENCES invitations(slug) ON DELETE CASCADE
+        )");
+    }
+    if ($driver === 'mysql') {
+        $stmt=$pdo->query("SHOW INDEX FROM guests WHERE Key_name='idx_guests_invitation'");
+        if(!$stmt->fetch()) $pdo->exec("CREATE INDEX idx_guests_invitation ON guests(invitation_slug, name)");
+    } else {
+        $pdo->exec("CREATE INDEX IF NOT EXISTS idx_guests_invitation ON guests(invitation_slug, name)");
+    }
     migrate_json_invitations($pdo);
 }
 function invitation_path(string $slug): string { return __DIR__.'/storage/invitations/'.basename($slug).'.json'; }
@@ -77,10 +114,17 @@ function load_invitation(string $slug): ?array {
 }
 function save_invitation(array $d): void {
     $now=date('c'); $d['updated_at']=$now; if(empty($d['created_at']))$d['created_at']=$now;
-    $stmt=db()->prepare('INSERT INTO invitations (slug,title,template,status,replacements,created_at,updated_at)
+    $sql='INSERT INTO invitations (slug,title,template,status,replacements,created_at,updated_at)
         VALUES (:slug,:title,:template,:status,:replacements,:created_at,:updated_at)
         ON CONFLICT(slug) DO UPDATE SET title=excluded.title, template=excluded.template, status=excluded.status,
-        replacements=excluded.replacements, updated_at=excluded.updated_at');
+        replacements=excluded.replacements, updated_at=excluded.updated_at';
+    if ((cfg()['db_driver'] ?? 'sqlite') === 'mysql') {
+        $sql='INSERT INTO invitations (slug,title,template,status,replacements,created_at,updated_at)
+            VALUES (:slug,:title,:template,:status,:replacements,:created_at,:updated_at)
+            ON DUPLICATE KEY UPDATE title=VALUES(title), template=VALUES(template), status=VALUES(status),
+            replacements=VALUES(replacements), updated_at=VALUES(updated_at)';
+    }
+    $stmt=db()->prepare($sql);
     $stmt->execute([
         ':slug'=>$d['slug'], ':title'=>$d['title'], ':template'=>$d['template'], ':status'=>$d['status']??'draft',
         ':replacements'=>json_encode($d['replacements']??[], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),

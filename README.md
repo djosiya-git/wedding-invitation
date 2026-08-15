@@ -61,7 +61,9 @@ Jika Apache + mod_rewrite aktif, tersedia juga:
 `/u/nama-slug?to=Bapak%20Andi`
 
 ## Struktur data
-Database: `storage/database.sqlite`
+Database production: MySQL `dwebindi_invitation`
+
+Database lokal opsional: SQLite `storage/database.sqlite` jika `db_driver` diubah ke `sqlite`.
 
 Template asli: `templates/*.html`
 
