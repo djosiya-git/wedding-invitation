@@ -167,7 +167,8 @@ function all_invitations(): array {
     return array_map('normalize_invitation', $rows);
 }
 function all_guests(string $slug): array {
-    $stmt=db()->prepare('SELECT * FROM guests WHERE invitation_slug=? ORDER BY name COLLATE NOCASE');
+    $order=(cfg()['db_driver'] ?? 'sqlite') === 'mysql' ? 'name' : 'name COLLATE NOCASE';
+    $stmt=db()->prepare('SELECT * FROM guests WHERE invitation_slug=? ORDER BY '.$order);
     $stmt->execute([$slug]); return $stmt->fetchAll();
 }
 function save_guest(string $slug, array $d): void {
