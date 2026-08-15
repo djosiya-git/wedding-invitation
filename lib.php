@@ -12,17 +12,110 @@ function templates(): array {
       'vintage-01'=>['name'=>'Vintage 05','file'=>'vintage-01.html','category'=>'Vintage'],
     ];
 }
+function db(): PDO {
+    static $pdo;
+    if ($pdo) return $pdo;
+    $dir = __DIR__.'/storage';
+    if (!is_dir($dir)) mkdir($dir, 0775, true);
+    $pdo = new PDO('sqlite:'.$dir.'/database.sqlite');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+    init_db($pdo);
+    return $pdo;
+}
+function init_db(PDO $pdo): void {
+    static $done = false; if ($done) return; $done = true;
+    $pdo->exec("CREATE TABLE IF NOT EXISTS invitations (
+        slug TEXT PRIMARY KEY,
+        title TEXT NOT NULL,
+        template TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'draft',
+        replacements TEXT NOT NULL DEFAULT '[]',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+    )");
+    $pdo->exec("CREATE TABLE IF NOT EXISTS guests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        invitation_slug TEXT NOT NULL,
+        name TEXT NOT NULL,
+        phone TEXT NOT NULL DEFAULT '',
+        group_label TEXT NOT NULL DEFAULT '',
+        note TEXT NOT NULL DEFAULT '',
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        FOREIGN KEY(invitation_slug) REFERENCES invitations(slug) ON DELETE CASCADE
+    )");
+    $pdo->exec("CREATE INDEX IF NOT EXISTS idx_guests_invitation ON guests(invitation_slug, name)");
+    migrate_json_invitations($pdo);
+}
 function invitation_path(string $slug): string { return __DIR__.'/storage/invitations/'.basename($slug).'.json'; }
+function migrate_json_invitations(PDO $pdo): void {
+    foreach(glob(__DIR__.'/storage/invitations/*.json')?:[] as $p){
+        $d=json_decode(file_get_contents($p),true); if(!is_array($d) || empty($d['slug'])) continue;
+        $exists=$pdo->prepare('SELECT 1 FROM invitations WHERE slug=?'); $exists->execute([$d['slug']]);
+        if($exists->fetchColumn()) continue;
+        $now=date('c');
+        $stmt=$pdo->prepare('INSERT INTO invitations (slug,title,template,status,replacements,created_at,updated_at) VALUES (?,?,?,?,?,?,?)');
+        $stmt->execute([
+            $d['slug'], $d['title']??$d['slug'], $d['template']??'special-01', $d['status']??'draft',
+            json_encode($d['replacements']??[], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+            $d['created_at']??$now, $d['updated_at']??$now
+        ]);
+    }
+}
+function normalize_invitation(array $d): array {
+    if (isset($d['replacements']) && is_string($d['replacements'])) {
+        $decoded=json_decode($d['replacements'], true);
+        $d['replacements']=is_array($decoded)?$decoded:[];
+    }
+    return $d;
+}
 function load_invitation(string $slug): ?array {
-    $p=invitation_path($slug); if(!is_file($p)) return null; $d=json_decode(file_get_contents($p),true); return is_array($d)?$d:null;
+    $stmt=db()->prepare('SELECT * FROM invitations WHERE slug=?'); $stmt->execute([$slug]);
+    $d=$stmt->fetch(); return $d?normalize_invitation($d):null;
 }
 function save_invitation(array $d): void {
-    $d['updated_at']=date('c'); if(empty($d['created_at']))$d['created_at']=$d['updated_at'];
-    file_put_contents(invitation_path($d['slug']), json_encode($d,JSON_PRETTY_PRINT|JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES), LOCK_EX);
+    $now=date('c'); $d['updated_at']=$now; if(empty($d['created_at']))$d['created_at']=$now;
+    $stmt=db()->prepare('INSERT INTO invitations (slug,title,template,status,replacements,created_at,updated_at)
+        VALUES (:slug,:title,:template,:status,:replacements,:created_at,:updated_at)
+        ON CONFLICT(slug) DO UPDATE SET title=excluded.title, template=excluded.template, status=excluded.status,
+        replacements=excluded.replacements, updated_at=excluded.updated_at');
+    $stmt->execute([
+        ':slug'=>$d['slug'], ':title'=>$d['title'], ':template'=>$d['template'], ':status'=>$d['status']??'draft',
+        ':replacements'=>json_encode($d['replacements']??[], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+        ':created_at'=>$d['created_at'], ':updated_at'=>$d['updated_at']
+    ]);
 }
 function all_invitations(): array {
-    $out=[]; foreach(glob(__DIR__.'/storage/invitations/*.json')?:[] as $p){$d=json_decode(file_get_contents($p),true); if(is_array($d))$out[]=$d;}
-    usort($out,fn($a,$b)=>strcmp($b['updated_at']??'',$a['updated_at']??'')); return $out;
+    $rows=db()->query("SELECT i.*, COUNT(g.id) guest_count FROM invitations i LEFT JOIN guests g ON g.invitation_slug=i.slug GROUP BY i.slug ORDER BY i.updated_at DESC")->fetchAll();
+    return array_map('normalize_invitation', $rows);
+}
+function all_guests(string $slug): array {
+    $stmt=db()->prepare('SELECT * FROM guests WHERE invitation_slug=? ORDER BY name COLLATE NOCASE');
+    $stmt->execute([$slug]); return $stmt->fetchAll();
+}
+function save_guest(string $slug, array $d): void {
+    $now=date('c');
+    if (!empty($d['id'])) {
+        $stmt=db()->prepare('UPDATE guests SET name=?, phone=?, group_label=?, note=?, status=?, updated_at=? WHERE id=? AND invitation_slug=?');
+        $stmt->execute([$d['name'],$d['phone'],$d['group_label'],$d['note'],$d['status'],$now,$d['id'],$slug]);
+        return;
+    }
+    $stmt=db()->prepare('INSERT INTO guests (invitation_slug,name,phone,group_label,note,status,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?)');
+    $stmt->execute([$slug,$d['name'],$d['phone'],$d['group_label'],$d['note'],$d['status'],$now,$now]);
+}
+function delete_guest(string $slug, int $id): void {
+    $stmt=db()->prepare('DELETE FROM guests WHERE id=? AND invitation_slug=?'); $stmt->execute([$id,$slug]);
+}
+function guest_by_id(string $slug, int $id): ?array {
+    $stmt=db()->prepare('SELECT * FROM guests WHERE id=? AND invitation_slug=?'); $stmt->execute([$id,$slug]);
+    $d=$stmt->fetch(); return $d?:null;
+}
+function guest_link(array $inv, array $guest): string {
+    $base=rtrim(cfg()['base_url'] ?: '', '/');
+    $path='view.php?slug='.urlencode($inv['slug']).'&guest='.(int)$guest['id'];
+    return ($base ? $base.'/' : '').$path;
 }
 function require_login(): void { start_session(); if(empty($_SESSION['admin'])){header('Location: login.php');exit;} }
 function scan_template(string $templateKey): array {
@@ -40,8 +133,10 @@ function scan_template(string $templateKey): array {
 }
 function apply_replacements(string $html,array $inv): string {
     foreach(($inv['replacements']??[]) as $r){ if(isset($r['from'],$r['to']) && $r['from']!=='') $html=str_replace($r['from'],$r['to'],$html); }
-    if(isset($_GET['to']) && trim($_GET['to'])!=='') $html=str_replace('Nama Tamu', e(trim($_GET['to'])), $html);
-    $base=cfg()['base_url'];
+    $guestName='';
+    if(isset($_GET['guest'])){ $guest=guest_by_id($inv['slug'], (int)$_GET['guest']); if($guest)$guestName=$guest['name']; }
+    if($guestName==='') $guestName=trim($_GET['to']??'');
+    if($guestName!=='') $html=str_replace('Nama Tamu', e($guestName), $html);
     $html=str_replace('</head>', '<meta name="generator" content="D-Webin Invitation Manager"></head>', $html);
     return $html;
 }

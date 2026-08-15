@@ -6,6 +6,9 @@ Admin sederhana untuk memakai template undangan HTML berulang kali tanpa menguba
 - Login admin
 - 3 template bawaan dari file yang diberikan
 - Buat banyak pesanan dari template yang sama
+- Database SQLite otomatis di `storage/database.sqlite`
+- Kelola tamu undangan per pesanan
+- Link undangan personal per tamu
 - Scanner otomatis seluruh teks, gambar, link, dan video dari HTML
 - Edit konten per pesanan
 - Upload foto/video pengganti
@@ -58,9 +61,11 @@ Jika Apache + mod_rewrite aktif, tersedia juga:
 `/u/nama-slug?to=Bapak%20Andi`
 
 ## Struktur data
+Database: `storage/database.sqlite`
+
 Template asli: `templates/*.html`
 
-Data pesanan: `storage/invitations/*.json`
+Data pesanan lama di `storage/invitations/*.json` akan dimigrasikan otomatis ke SQLite saat aplikasi dibuka.
 
 Media upload: `storage/uploads/{slug}/`
 

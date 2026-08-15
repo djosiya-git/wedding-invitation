@@ -1,6 +1,8 @@
 config.php
+storage/*.sqlite
+storage/*.sqlite3
+storage/*.db
 storage/invitations/*.json
 storage/uploads/*
 !storage/invitations/.gitkeep
 !storage/uploads/.gitkeep
-
