@@ -1,0 +1,8 @@
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^u/([A-Za-z0-9-]+)/?$ view.php?slug=$1 [L,QSA]
+Options -Indexes
+<FilesMatch "^(config\.php|lib\.php)$">
+  Require all denied
+</FilesMatch>

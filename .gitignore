@@ -1,0 +1,6 @@
+config.php
+storage/invitations/*.json
+storage/uploads/*
+!storage/invitations/.gitkeep
+!storage/uploads/.gitkeep
+
