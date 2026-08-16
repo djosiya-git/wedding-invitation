@@ -9,7 +9,9 @@ if (!$inv) {
     exit('Undangan tidak ditemukan');
 }
 
-$scan = scan_template($inv['template']);
+$templateKey = normalize_template_key($inv['template']);
+$template = templates()[$templateKey] ?? null;
+$scan = scan_template($templateKey);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $inv['title'] = trim($_POST['title'] ?? $inv['title']);
@@ -97,7 +99,7 @@ function rows(array $items, array $existing, string $type): void {
   <header>
     <div>
       <h1><?=e($inv['title'])?></h1>
-      <p>Template: <?=e(templates()[$inv['template']]['name'])?> · URL: /<?=e($inv['slug'])?></p>
+      <p>Template: <?=e($template['name'] ?? $inv['template'])?> · URL: /<?=e($inv['slug'])?></p>
     </div>
     <div class="header-actions">
       <a class="btn" target="_blank" href="view.php?slug=<?=urlencode($slug)?>">Preview penuh</a>

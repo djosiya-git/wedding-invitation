@@ -7,23 +7,48 @@ function slugify(string $s): string {
 }
 function templates(): array {
     $out = [];
-    $categoryOrder = ['special' => 10, 'vintage' => 20, 'animasi' => 30];
+    $categories = template_categories();
+    $categoryOrder = array_flip(array_keys($categories));
     foreach (glob(__DIR__.'/templates/*.html') ?: [] as $path) {
         $key = basename($path, '.html');
         if (!preg_match('/^([a-z]+)-(\d+)$/', $key, $m)) continue;
         $prefix = $m[1];
         $number = $m[2];
-        $category = ucfirst($prefix);
+        $category = $categories[$prefix] ?? ucfirst($prefix);
         $out[$key] = [
             'name' => $category.' '.$number,
             'file' => basename($path),
             'category' => $category,
-            'sort' => ($categoryOrder[$prefix] ?? 99).'-'.$number,
+            'category_key' => $prefix,
+            'sort' => str_pad((string)(($categoryOrder[$prefix] ?? 99) + 1), 2, '0', STR_PAD_LEFT).'-'.$number,
         ];
     }
     uasort($out, fn($a, $b) => strcmp($a['sort'], $b['sort']));
     foreach ($out as &$template) unset($template['sort']);
     return $out;
+}
+function template_categories(): array {
+    return [
+        'animation' => 'Animation',
+        'minimalist' => 'Minimalist',
+        'luxury' => 'Luxury',
+        'vintage' => 'Vintage',
+    ];
+}
+function templates_by_category(): array {
+    $groups = [];
+    foreach (template_categories() as $key => $label) $groups[$key] = ['label' => $label, 'templates' => []];
+    foreach (templates() as $key => $template) {
+        $categoryKey = $template['category_key'] ?? strtolower($template['category']);
+        if (!isset($groups[$categoryKey])) $groups[$categoryKey] = ['label' => $template['category'], 'templates' => []];
+        $groups[$categoryKey]['templates'][$key] = $template;
+    }
+    return $groups;
+}
+function normalize_template_key(string $key): string {
+    if (preg_match('/^special-(\d+)$/', $key, $m)) return 'minimalist-'.$m[1];
+    if (preg_match('/^animasi-(\d+)$/', $key, $m)) return 'animation-'.$m[1];
+    return $key;
 }
 function db(): PDO {
     static $pdo;
@@ -139,7 +164,7 @@ function migrate_json_invitations(PDO $pdo): void {
         $now=date('c');
         $stmt=$pdo->prepare('INSERT INTO invitations (slug,title,template,status,replacements,created_at,updated_at) VALUES (?,?,?,?,?,?,?)');
         $stmt->execute([
-            $d['slug'], $d['title']??$d['slug'], $d['template']??'special-01', $d['status']??'draft',
+            $d['slug'], $d['title']??$d['slug'], $d['template']??'minimalist-01', $d['status']??'draft',
             json_encode($d['replacements']??[], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
             $d['created_at']??$now, $d['updated_at']??$now
         ]);

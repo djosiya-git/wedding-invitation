@@ -1,6 +1,6 @@
 <?php
 require __DIR__.'/lib.php';
-$k = $_GET['template'] ?? '';
+$k = normalize_template_key($_GET['template'] ?? '');
 $t = templates()[$k] ?? null;
 if (!$t) {
     http_response_code(404);
