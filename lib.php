@@ -203,6 +203,28 @@ function normalize_event_at(?string $value): string {
     if (preg_match('/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})(?::\d{2})?$/', $value, $m)) return $m[1].'T'.$m[2];
     return '';
 }
+function parse_indonesian_event_at(string $value): string {
+    $value = trim(html_entity_decode(strip_tags($value), ENT_QUOTES, 'UTF-8'));
+    if ($value === '') return '';
+    $months = [
+        'januari' => '01', 'februari' => '02', 'maret' => '03', 'april' => '04',
+        'mei' => '05', 'juni' => '06', 'juli' => '07', 'agustus' => '08',
+        'september' => '09', 'oktober' => '10', 'november' => '11', 'desember' => '12',
+    ];
+    if (!preg_match('/(?:senin|selasa|rabu|kamis|jumat|jum\'at|sabtu|minggu)?\s*,?\s*(\d{1,2})\s+(januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember)\s+(\d{4})(?:.*?(\d{1,2})[:.](\d{2}))?/iu', $value, $m)) return '';
+    $month = $months[strtolower($m[2])] ?? '';
+    if ($month === '') return '';
+    $hour = isset($m[4]) && $m[4] !== '' ? str_pad($m[4], 2, '0', STR_PAD_LEFT) : '00';
+    $minute = isset($m[5]) && $m[5] !== '' ? $m[5] : '00';
+    return sprintf('%04d-%s-%02dT%s:%s', (int)$m[3], $month, (int)$m[1], $hour, $minute);
+}
+function countdown_event_at_from_replacements(array $inv): string {
+    foreach (($inv['replacements'] ?? []) as $r) {
+        $eventAt = parse_indonesian_event_at((string)($r['to'] ?? ''));
+        if ($eventAt !== '') return $eventAt;
+    }
+    return normalize_event_at($inv['event_at'] ?? '');
+}
 function load_invitation(string $slug): ?array {
     $stmt=db()->prepare('SELECT * FROM invitations WHERE slug=?'); $stmt->execute([$slug]);
     $d=$stmt->fetch(); return $d?normalize_invitation($d):null;
@@ -283,7 +305,7 @@ function apply_replacements(string $html,array $inv): string {
     return $html;
 }
 function apply_countdown_event(string $html, array $inv): string {
-    $eventAt = normalize_event_at($inv['event_at'] ?? '');
+    $eventAt = countdown_event_at_from_replacements($inv);
     if ($eventAt === '') return $html;
     $iso = $eventAt.':00+07:00';
     $target = (string)(strtotime($iso) * 1000);

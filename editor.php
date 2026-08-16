@@ -16,7 +16,6 @@ $scan = scan_template($templateKey);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $inv['title'] = trim($_POST['title'] ?? $inv['title']);
     $inv['status'] = $_POST['status'] ?? 'draft';
-    $inv['event_at'] = normalize_event_at($_POST['event_at'] ?? '');
 
     $reps = [];
     $from = $_POST['from'] ?? [];
@@ -85,7 +84,6 @@ function rows(array $items, array $existing, string $type): void {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Editor</title>
   <link rel="stylesheet" href="assets/admin.css">
-  <style>.sticky-tools{grid-template-columns:1fr 170px 210px auto}.countdown-note{margin-top:6px;color:#777;font-weight:400}@media(max-width:760px){.sticky-tools{grid-template-columns:1fr}}</style>
 </head>
 <body>
 <aside class="sidebar">
@@ -113,7 +111,6 @@ function rows(array $items, array $existing, string $type): void {
       <div class="sticky-tools">
         <label>Judul<input name="title" value="<?=e($inv['title'])?>"></label>
         <label>Status<select name="status"><option value="draft" <?=$inv['status']==='draft'?'selected':''?>>Draft</option><option value="published" <?=$inv['status']==='published'?'selected':''?>>Published</option></select></label>
-        <label>Tanggal acara<input type="datetime-local" name="event_at" value="<?=e($inv['event_at'] ?? '')?>"><small class="countdown-note">Untuk hitung mundur template.</small></label>
         <button class="btn primary">Simpan Perubahan</button>
       </div>
       <div class="hint"><b>Cara edit:</b> bagian kiri adalah nilai asli template, bagian kanan isi baru. Biarkan sama kalau tidak ingin diubah.</div>
