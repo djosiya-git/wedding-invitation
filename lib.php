@@ -77,6 +77,7 @@ function init_db(PDO $pdo, string $driver): void {
             title VARCHAR(255) NOT NULL,
             template VARCHAR(100) NOT NULL,
             status VARCHAR(30) NOT NULL DEFAULT 'draft',
+            event_at VARCHAR(40) NULL,
             replacements LONGTEXT NOT NULL,
             created_at VARCHAR(40) NOT NULL,
             updated_at VARCHAR(40) NOT NULL
@@ -99,6 +100,7 @@ function init_db(PDO $pdo, string $driver): void {
             title TEXT NOT NULL,
             template TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'draft',
+            event_at TEXT NOT NULL DEFAULT '',
             replacements TEXT NOT NULL DEFAULT '[]',
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
@@ -116,6 +118,7 @@ function init_db(PDO $pdo, string $driver): void {
             FOREIGN KEY(invitation_slug) REFERENCES invitations(slug) ON DELETE CASCADE
         )");
     }
+    ensure_invitation_event_at_column($pdo, $driver);
     if ($driver === 'mysql') {
         $stmt=$pdo->query("SHOW INDEX FROM guests WHERE Key_name='idx_guests_invitation'");
         if(!$stmt->fetch()) $pdo->exec("CREATE INDEX idx_guests_invitation ON guests(invitation_slug, name)");
@@ -124,6 +127,21 @@ function init_db(PDO $pdo, string $driver): void {
     }
     if ($driver === 'mysql') migrate_sqlite_invitations($pdo);
     migrate_json_invitations($pdo);
+}
+function ensure_invitation_event_at_column(PDO $pdo, string $driver): void {
+    if ($driver === 'mysql') {
+        $stmt = $pdo->query("SHOW COLUMNS FROM invitations LIKE 'event_at'");
+        if (!$stmt->fetch()) $pdo->exec("ALTER TABLE invitations ADD event_at VARCHAR(40) NULL AFTER status");
+        return;
+    }
+    $has = false;
+    foreach ($pdo->query("PRAGMA table_info(invitations)") as $column) {
+        if (($column['name'] ?? '') === 'event_at') {
+            $has = true;
+            break;
+        }
+    }
+    if (!$has) $pdo->exec("ALTER TABLE invitations ADD COLUMN event_at TEXT NOT NULL DEFAULT ''");
 }
 function invitation_path(string $slug): string { return __DIR__.'/storage/invitations/'.basename($slug).'.json'; }
 function migrate_sqlite_invitations(PDO $pdo): void {
@@ -175,7 +193,15 @@ function normalize_invitation(array $d): array {
         $decoded=json_decode($d['replacements'], true);
         $d['replacements']=is_array($decoded)?$decoded:[];
     }
+    $d['event_at'] = normalize_event_at($d['event_at'] ?? '');
     return $d;
+}
+function normalize_event_at(?string $value): string {
+    $value = trim((string)$value);
+    if ($value === '') return '';
+    $value = str_replace(' ', 'T', $value);
+    if (preg_match('/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})(?::\d{2})?$/', $value, $m)) return $m[1].'T'.$m[2];
+    return '';
 }
 function load_invitation(string $slug): ?array {
     $stmt=db()->prepare('SELECT * FROM invitations WHERE slug=?'); $stmt->execute([$slug]);
@@ -183,19 +209,20 @@ function load_invitation(string $slug): ?array {
 }
 function save_invitation(array $d): void {
     $now=date('c'); $d['updated_at']=$now; if(empty($d['created_at']))$d['created_at']=$now;
-    $sql='INSERT INTO invitations (slug,title,template,status,replacements,created_at,updated_at)
-        VALUES (:slug,:title,:template,:status,:replacements,:created_at,:updated_at)
-        ON CONFLICT(slug) DO UPDATE SET title=excluded.title, template=excluded.template, status=excluded.status,
+    $d['event_at'] = normalize_event_at($d['event_at'] ?? '');
+    $sql='INSERT INTO invitations (slug,title,template,status,event_at,replacements,created_at,updated_at)
+        VALUES (:slug,:title,:template,:status,:event_at,:replacements,:created_at,:updated_at)
+        ON CONFLICT(slug) DO UPDATE SET title=excluded.title, template=excluded.template, status=excluded.status, event_at=excluded.event_at,
         replacements=excluded.replacements, updated_at=excluded.updated_at';
     if ((cfg()['db_driver'] ?? 'sqlite') === 'mysql') {
-        $sql='INSERT INTO invitations (slug,title,template,status,replacements,created_at,updated_at)
-            VALUES (:slug,:title,:template,:status,:replacements,:created_at,:updated_at)
-            ON DUPLICATE KEY UPDATE title=VALUES(title), template=VALUES(template), status=VALUES(status),
+        $sql='INSERT INTO invitations (slug,title,template,status,event_at,replacements,created_at,updated_at)
+            VALUES (:slug,:title,:template,:status,:event_at,:replacements,:created_at,:updated_at)
+            ON DUPLICATE KEY UPDATE title=VALUES(title), template=VALUES(template), status=VALUES(status), event_at=VALUES(event_at),
             replacements=VALUES(replacements), updated_at=VALUES(updated_at)';
     }
     $stmt=db()->prepare($sql);
     $stmt->execute([
-        ':slug'=>$d['slug'], ':title'=>$d['title'], ':template'=>$d['template'], ':status'=>$d['status']??'draft',
+        ':slug'=>$d['slug'], ':title'=>$d['title'], ':template'=>$d['template'], ':status'=>$d['status']??'draft', ':event_at'=>$d['event_at'],
         ':replacements'=>json_encode($d['replacements']??[], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
         ':created_at'=>$d['created_at'], ':updated_at'=>$d['updated_at']
     ]);
@@ -251,6 +278,20 @@ function apply_replacements(string $html,array $inv): string {
     if(isset($_GET['guest'])){ $guest=guest_by_id($inv['slug'], (int)$_GET['guest']); if($guest)$guestName=$guest['name']; }
     if($guestName==='') $guestName=trim($_GET['to']??'');
     if($guestName!=='') $html=str_replace('Nama Tamu', e($guestName), $html);
+    $html=apply_countdown_event($html, $inv);
     $html=str_replace('</head>', '<meta name="generator" content="D-Webin Invitation Manager"></head>', $html);
     return $html;
+}
+function apply_countdown_event(string $html, array $inv): string {
+    $eventAt = normalize_event_at($inv['event_at'] ?? '');
+    if ($eventAt === '') return $html;
+    $iso = $eventAt.':00+07:00';
+    $target = (string)(strtotime($iso) * 1000);
+    $html = preg_replace_callback('/<div\b([^>]*\bclass=["\'][^"\']*\bidb-countdown\b[^"\']*["\'][^>]*)>/i', function ($m) use ($iso, $target) {
+        $attrs = preg_replace('/\sdata-target=["\'][^"\']*["\']/i', '', $m[1]);
+        $attrs = preg_replace('/\sdata-target-iso=["\'][^"\']*["\']/i', '', $attrs);
+        return '<div'.$attrs.' data-target="'.e($target).'" data-target-iso="'.e($iso).'">';
+    }, $html) ?? $html;
+    $script = '<script>(function(){var target=new Date('.json_encode($iso).').getTime();function pad(n){return Math.max(0,Math.floor(n));}function tick(){document.querySelectorAll(".idb-countdown").forEach(function(box){box.setAttribute("data-target",String(target));box.setAttribute("data-target-iso",'.json_encode($iso).');var diff=Math.max(0,target-Date.now());var days=pad(diff/86400000);var hours=pad(diff%86400000/3600000);var minutes=pad(diff%3600000/60000);var seconds=pad(diff%60000/1000);var parts={days:days,hours:hours,minutes:minutes,seconds:seconds};Object.keys(parts).forEach(function(key){var num=box.querySelector("[data-part="+key+"] [data-role=num]");if(num)num.textContent=String(parts[key]);});});}tick();setInterval(tick,1000);})();</script>';
+    return str_ireplace('</body>', $script.'</body>', $html);
 }
