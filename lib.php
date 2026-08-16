@@ -6,11 +6,24 @@ function slugify(string $s): string {
     $s = strtolower(trim($s)); $s = preg_replace('/[^a-z0-9]+/','-',$s); return trim($s,'-') ?: 'undangan-'.time();
 }
 function templates(): array {
-    return [
-      'special-01'=>['name'=>'Special 01','file'=>'special-01.html','category'=>'Special'],
-      'special-02'=>['name'=>'Special 02','file'=>'special-02.html','category'=>'Special'],
-      'vintage-01'=>['name'=>'Vintage 05','file'=>'vintage-01.html','category'=>'Vintage'],
-    ];
+    $out = [];
+    $categoryOrder = ['special' => 10, 'vintage' => 20, 'animasi' => 30];
+    foreach (glob(__DIR__.'/templates/*.html') ?: [] as $path) {
+        $key = basename($path, '.html');
+        if (!preg_match('/^([a-z]+)-(\d+)$/', $key, $m)) continue;
+        $prefix = $m[1];
+        $number = $m[2];
+        $category = ucfirst($prefix);
+        $out[$key] = [
+            'name' => $category.' '.$number,
+            'file' => basename($path),
+            'category' => $category,
+            'sort' => ($categoryOrder[$prefix] ?? 99).'-'.$number,
+        ];
+    }
+    uasort($out, fn($a, $b) => strcmp($a['sort'], $b['sort']));
+    foreach ($out as &$template) unset($template['sort']);
+    return $out;
 }
 function db(): PDO {
     static $pdo;
