@@ -295,14 +295,80 @@ function scan_template(string $templateKey): array {
     return ['texts'=>array_values($texts),'images'=>array_values($images),'links'=>array_values($links),'videos'=>array_values($videos)];
 }
 function apply_replacements(string $html,array $inv): string {
-    foreach(($inv['replacements']??[]) as $r){ if(isset($r['from'],$r['to']) && $r['from']!=='') $html=str_replace($r['from'],$r['to'],$html); }
+    foreach(($inv['replacements']??[]) as $r){
+        if(!isset($r['from'],$r['to']) || $r['from']==='') continue;
+        $type = $r['type'] ?? (preg_match('~^(?:https?:)?//|^storage/uploads/|^assets/|\\.(?:jpe?g|png|webp|gif|mp4|mp3|wav)(?:\\?|$)~i', (string)$r['from']) ? 'media' : 'text');
+        $to = $type === 'text' ? e((string)$r['to']) : (string)$r['to'];
+        $html=str_replace((string)$r['from'], $to, $html);
+    }
     $guestName='';
     if(isset($_GET['guest'])){ $guest=guest_by_id($inv['slug'], (int)$_GET['guest']); if($guest)$guestName=$guest['name']; }
     if($guestName==='') $guestName=trim($_GET['to']??'');
     if($guestName!=='') $html=str_replace('Nama Tamu', e($guestName), $html);
     $html=apply_countdown_event($html, $inv);
+    $html=apply_template_runtime_fixes($html);
     $html=str_replace('</head>', '<meta name="generator" content="D-Webin Invitation Manager"></head>', $html);
     return $html;
+}
+function apply_template_runtime_fixes(string $html): string {
+    $style = <<<'HTML'
+<style id="dwebin-template-runtime-css">
+html.dwebin-template-ready .elementor-invisible,
+html.dwebin-template-ready .idb-reveal,
+html.dwebin-template-ready .idb-ef,
+html.dwebin-template-ready .af {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+html.dwebin-template-ready .idb-reveal,
+html.dwebin-template-ready .idb-ef,
+html.dwebin-template-ready .af {
+  transform: none !important;
+}
+</style>
+HTML;
+    $script = <<<'HTML'
+<script id="dwebin-template-runtime-js">
+(function () {
+  function revealTemplate() {
+    document.documentElement.classList.add('dwebin-template-ready');
+    document.querySelectorAll('.elementor-invisible').forEach(function (el) {
+      el.classList.remove('elementor-invisible');
+      el.classList.add('animated');
+    });
+    document.querySelectorAll('.idb-reveal,.idb-ef,.af').forEach(function (el) {
+      el.classList.add('active');
+      el.style.visibility = 'visible';
+      if (!el.style.opacity || el.style.opacity === '0') el.style.opacity = '1';
+    });
+  }
+  function prioritizeMedia() {
+    document.querySelectorAll('img').forEach(function (img, index) {
+      if (index < 10) {
+        img.loading = 'eager';
+        img.fetchPriority = index < 4 ? 'high' : 'auto';
+      }
+      img.decoding = 'async';
+    });
+  }
+  prioritizeMedia();
+  document.addEventListener('DOMContentLoaded', function () {
+    prioritizeMedia();
+    setTimeout(revealTemplate, 900);
+    setTimeout(revealTemplate, 2200);
+    setTimeout(revealTemplate, 4200);
+  });
+  window.addEventListener('load', function () {
+    prioritizeMedia();
+    setTimeout(revealTemplate, 300);
+  });
+})();
+</script>
+HTML;
+    if (stripos($html, 'id="dwebin-template-runtime-js"') !== false) return $html;
+    if (stripos($html, '</head>') !== false) $html = str_ireplace('</head>', $style.'</head>', $html);
+    if (stripos($html, '</body>') !== false) return str_ireplace('</body>', $script.'</body>', $html);
+    return $html.$style.$script;
 }
 function apply_countdown_event(string $html, array $inv): string {
     $eventAt = countdown_event_at_from_replacements($inv);

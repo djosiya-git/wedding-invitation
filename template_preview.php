@@ -8,6 +8,7 @@ if (!$t) {
 }
 
 $html = file_get_contents(__DIR__.'/templates/'.$t['file']);
+$html = apply_template_runtime_fixes($html);
 if (isset($_GET['mute'])) {
     $mute = <<<'HTML'
 <script>

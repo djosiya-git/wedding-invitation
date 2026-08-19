@@ -20,11 +20,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $reps = [];
     $from = $_POST['from'] ?? [];
     $to = $_POST['to'] ?? [];
+    $types = $_POST['type'] ?? [];
     foreach ($from as $i => $f) {
         $f = (string)$f;
         $v = (string)($to[$i] ?? '');
+        $type = (string)($types[$i] ?? '');
         if ($f !== '' && $v !== '' && $v !== $f) {
-            $reps[] = ['from' => $f, 'to' => $v];
+            $reps[] = ['from' => $f, 'to' => $v, 'type' => $type];
         }
     }
 
@@ -61,6 +63,7 @@ function rows(array $items, array $existing, string $type): void {
         echo '<div class="edit-row">';
         echo '<div class="original"><span>'.e(strtoupper($type)).'</span><code>'.e(mb_strimwidth($x, 0, 110, '...')).'</code></div>';
         echo '<input class="from-field" type="hidden" name="from[]" value="'.e($x).'" disabled>';
+        echo '<input class="type-field" type="hidden" name="type[]" value="'.e($type).'" disabled>';
         if ($type === 'text') {
             echo '<textarea class="replace-field" name="to[]" rows="2" data-original="'.e($x).'">'.e($val).'</textarea>';
         } else {
@@ -138,6 +141,8 @@ document.querySelector('.editor-form').addEventListener('submit', function () {
     if (from && replace) {
       from.disabled = !changed;
       replace.disabled = !changed;
+      var type = row.querySelector('.type-field');
+      if (type) type.disabled = !changed;
     }
     if (upload && uploadSource) {
       upload.disabled = !hasUpload;
