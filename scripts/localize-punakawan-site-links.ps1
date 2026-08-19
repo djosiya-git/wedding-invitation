@@ -1,18 +1,20 @@
 param(
-    [string]$SourceBase = 'https://inv.punakawandigital.id/',
+    [Parameter(Mandatory=$true)]
+    [string]$SourceBase,
     [string]$PublicBase = 'https://invitation.d-webindigital.web.id/admin/assets/template-assets/punakawan/site/',
     [string]$ProjectBase = 'https://invitation.d-webindigital.web.id/',
     [string]$LocalRoot = 'assets/template-assets/punakawan/site'
 )
 
 $ErrorActionPreference = 'Stop'
+$SourceBase = $SourceBase.TrimEnd('/') + '/'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $templateDir = Join-Path $root 'templates'
 $assetRoot = Join-Path $root $LocalRoot
 New-Item -ItemType Directory -Force -Path $assetRoot | Out-Null
 
-$normalPattern = 'https://inv\.punakawandigital\.id/[^"'' )<>&]+'
-$escapedPattern = 'https:\\/\\/inv\.punakawandigital\.id\\/[^"'' )<>&]+'
+$normalPattern = [regex]::Escape($SourceBase) + '[^"'' )<>&]+'
+$escapedPattern = [regex]::Escape(($SourceBase -replace '/', '\/')) + '[^"'' )<>&]+'
 $assetExtensions = '\.(?:css|js|mjs|json|png|jpe?g|jpeg|webp|gif|svg|ico|woff2?|ttf|otf|eot|mp3|wav|mp4|webm)(?:\?|$)'
 $urls = [System.Collections.Generic.HashSet[string]]::new()
 

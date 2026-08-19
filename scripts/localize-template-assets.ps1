@@ -1,17 +1,19 @@
 param(
-    [string]$SourceHost = 'https://inv.punakawandigital.id/wp-content/uploads/',
+    [Parameter(Mandatory=$true)]
+    [string]$SourceHost,
     [string]$PublicBase = 'https://invitation.d-webindigital.web.id/admin/assets/template-assets/punakawan/uploads/',
     [string]$LocalRoot = 'assets/template-assets/punakawan/uploads'
 )
 
 $ErrorActionPreference = 'Stop'
+$SourceHost = $SourceHost.TrimEnd('/') + '/'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $templateDir = Join-Path $root 'templates'
 $assetRoot = Join-Path $root $LocalRoot
 New-Item -ItemType Directory -Force -Path $assetRoot | Out-Null
 
-$normalPattern = 'https://inv\.punakawandigital\.id/wp-content/uploads/[^"'' )<>&]+'
-$escapedPattern = 'https:\\/\\/inv\.punakawandigital\.id\\/wp-content\\/uploads\\/[^"'' )<>&]+'
+$normalPattern = [regex]::Escape($SourceHost) + '[^"'' )<>&]+'
+$escapedPattern = [regex]::Escape(($SourceHost -replace '/', '\/')) + '[^"'' )<>&]+'
 $urls = [System.Collections.Generic.HashSet[string]]::new()
 
 Get-ChildItem -Path $templateDir -Filter '*.html' | ForEach-Object {

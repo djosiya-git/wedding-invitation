@@ -1,10 +1,12 @@
 param(
     [string]$SourceBase = 'https://invitation.d-webindigital.web.id/',
-    [string]$OriginalBase = 'https://inv.punakawandigital.id/',
+    [Parameter(Mandatory=$true)]
+    [string]$OriginalBase,
     [string]$LocalRoot = 'assets/template-assets/punakawan/site'
 )
 
 $ErrorActionPreference = 'Stop'
+$OriginalBase = $OriginalBase.TrimEnd('/') + '/'
 $root = Resolve-Path (Join-Path $PSScriptRoot '..')
 $assetRoot = Resolve-Path (Join-Path $root $LocalRoot)
 $downloaded = 0
