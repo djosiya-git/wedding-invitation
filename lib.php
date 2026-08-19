@@ -402,12 +402,56 @@ function apply_template_runtime_fixes(string $html): string {
     });
   }
 
+  function setupLottieWidgets() {
+    var player = window.lottie || window.bodymovin;
+    if (!player || typeof player.loadAnimation !== 'function') return;
+
+    document.querySelectorAll('.elementor-widget-lottie[data-settings]').forEach(function (widget) {
+      var settings = readSettings(widget);
+      var url = settings.source_json && settings.source_json.url;
+      if (!url) return;
+
+      var container = widget.querySelector('.e-lottie__animation');
+      if (!container || container.dataset.dwebinLottieReady === '1') return;
+      if (container.querySelector('svg, canvas')) {
+        container.dataset.dwebinLottieReady = '1';
+        return;
+      }
+
+      widget.classList.remove('elementor-invisible');
+      container.dataset.dwebinLottieReady = '1';
+
+      try {
+        player.loadAnimation({
+          container: container,
+          renderer: settings.renderer || 'svg',
+          loop: settings.loop !== 'no',
+          autoplay: true,
+          path: url
+        });
+      } catch (e) {
+        container.dataset.dwebinLottieReady = '0';
+      }
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () { setupOpeningVideos(false); });
-  document.addEventListener('idbRevealStart', function () { setupOpeningVideos(true); });
+  window.addEventListener('load', setupLottieWidgets);
+  document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(setupLottieWidgets, 150);
+    setTimeout(setupLottieWidgets, 900);
+  });
+  document.addEventListener('idbRevealStart', function () {
+    setupOpeningVideos(true);
+    setTimeout(setupLottieWidgets, 80);
+    setTimeout(setupLottieWidgets, 700);
+  });
   document.addEventListener('click', function (event) {
     if (event.target && event.target.closest && event.target.closest('#open')) {
       setTimeout(function () { setupOpeningVideos(true); }, 80);
       setTimeout(function () { setupOpeningVideos(true); }, 450);
+      setTimeout(setupLottieWidgets, 120);
+      setTimeout(setupLottieWidgets, 900);
     }
   }, true);
 })();
