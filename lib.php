@@ -249,16 +249,16 @@ function save_invitation(array $d): void {
         ':created_at'=>$d['created_at'], ':updated_at'=>$d['updated_at']
     ]);
 }
-function all_invitations(): array {
-    $rows=db()->query("SELECT i.*, COUNT(g.id) guest_count FROM invitations i LEFT JOIN guests g ON g.invitation_slug=i.slug GROUP BY i.slug ORDER BY i.updated_at DESC")->fetchAll();
-    return array_map('normalize_invitation', $rows);
-}
 function delete_invitation(string $slug): void {
     $pdo = db();
     $stmt = $pdo->prepare('DELETE FROM guests WHERE invitation_slug=?');
     $stmt->execute([$slug]);
     $stmt = $pdo->prepare('DELETE FROM invitations WHERE slug=?');
     $stmt->execute([$slug]);
+}
+function all_invitations(): array {
+    $rows=db()->query("SELECT i.*, COUNT(g.id) guest_count FROM invitations i LEFT JOIN guests g ON g.invitation_slug=i.slug GROUP BY i.slug ORDER BY i.updated_at DESC")->fetchAll();
+    return array_map('normalize_invitation', $rows);
 }
 function all_guests(string $slug): array {
     $order=(cfg()['db_driver'] ?? 'sqlite') === 'mysql' ? 'name' : 'name COLLATE NOCASE';
@@ -302,11 +302,16 @@ function scan_template(string $templateKey): array {
     return ['texts'=>array_values($texts),'images'=>array_values($images),'links'=>array_values($links),'videos'=>array_values($videos)];
 }
 function apply_replacements(string $html,array $inv): string {
-    foreach(($inv['replacements']??[]) as $r){
+    $replacements = $inv['replacements'] ?? [];
+    usort($replacements, fn($a, $b) => strlen((string)($b['from'] ?? '')) <=> strlen((string)($a['from'] ?? '')));
+    foreach($replacements as $r){
         if(!isset($r['from'],$r['to']) || $r['from']==='') continue;
         $type = $r['type'] ?? (preg_match('~^(?:https?:)?//|^storage/uploads/|^assets/|\\.(?:jpe?g|png|webp|gif|mp4|mp3|wav)(?:\\?|$)~i', (string)$r['from']) ? 'media' : 'text');
-        $to = $type === 'text' ? e((string)$r['to']) : (string)$r['to'];
-        $html=str_replace((string)$r['from'], $to, $html);
+        if ($type === 'text') {
+            $html = replace_template_text($html, (string)$r['from'], (string)$r['to']);
+        } else {
+            $html=str_replace((string)$r['from'], (string)$r['to'], $html);
+        }
     }
     $guestName='';
     if(isset($_GET['guest'])){ $guest=guest_by_id($inv['slug'], (int)$_GET['guest']); if($guest)$guestName=$guest['name']; }
@@ -316,6 +321,37 @@ function apply_replacements(string $html,array $inv): string {
     $html=apply_template_runtime_fixes($html);
     $html=str_replace('</head>', '<meta name="generator" content="D-Webin Invitation Manager"></head>', $html);
     return $html;
+}
+function format_template_text(string $value): string {
+    return nl2br(e($value), false);
+}
+function replace_template_text(string $html, string $from, string $to): string {
+    $replacement = format_template_text($to);
+    $variants = array_values(array_unique([
+        $from,
+        html_entity_decode($from, ENT_QUOTES, 'UTF-8'),
+        e(html_entity_decode($from, ENT_QUOTES, 'UTF-8')),
+    ]));
+    foreach ($variants as $variant) {
+        if ($variant === '') continue;
+        if (strpos($html, $variant) !== false) {
+            $html = str_replace($variant, $replacement, $html);
+        }
+        $pattern = template_text_pattern($variant);
+        if ($pattern !== '') {
+            $html = preg_replace($pattern, $replacement, $html) ?? $html;
+        }
+    }
+    return $html;
+}
+function template_text_pattern(string $text): string {
+    $text = trim($text);
+    if ($text === '') return '';
+    $parts = preg_split('/\s+/u', $text) ?: [];
+    $parts = array_values(array_filter($parts, fn($part) => $part !== ''));
+    if (!$parts) return '';
+    $joiner = '(?:\s|&nbsp;|&#160;|<br\s*/?>)+';
+    return '~'.implode($joiner, array_map(fn($part) => preg_quote($part, '~'), $parts)).'~iu';
 }
 function apply_template_runtime_fixes(string $html): string {
     $style = <<<'HTML'

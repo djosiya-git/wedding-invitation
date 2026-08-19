@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $f = (string)$f;
         $v = (string)($to[$i] ?? '');
         $type = (string)($types[$i] ?? '');
-        if ($f !== '' && $v !== '' && $v !== $f) {
+        if ($f !== '' && $v !== $f) {
             $reps[] = ['from' => $f, 'to' => $v, 'type' => $type];
         }
     }
