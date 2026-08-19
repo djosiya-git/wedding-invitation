@@ -354,48 +354,7 @@ function template_text_pattern(string $text): string {
     return '~'.implode($joiner, array_map(fn($part) => preg_quote($part, '~'), $parts)).'~iu';
 }
 function apply_template_runtime_fixes(string $html): string {
-    $style = <<<'HTML'
-<style id="dwebin-template-runtime-css">
-html.dwebin-template-ready .elementor-invisible {
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-</style>
-HTML;
-    $script = <<<'HTML'
-<script id="dwebin-template-runtime-js">
-(function () {
-  function revealStuckElementorText() {
-    document.documentElement.classList.add('dwebin-template-ready');
-    document.querySelectorAll('.elementor-invisible').forEach(function (el) {
-      el.classList.remove('elementor-invisible');
-      el.classList.add('animated');
-    });
-  }
-  function prioritizeMedia() {
-    document.querySelectorAll('img').forEach(function (img, index) {
-      if (index < 10) {
-        img.loading = 'eager';
-        img.fetchPriority = index < 4 ? 'high' : 'auto';
-      }
-      img.decoding = 'async';
-    });
-  }
-  prioritizeMedia();
-  document.addEventListener('DOMContentLoaded', function () {
-    prioritizeMedia();
-    setTimeout(revealStuckElementorText, 6500);
-  });
-  window.addEventListener('load', function () {
-    prioritizeMedia();
-  });
-})();
-</script>
-HTML;
-    if (stripos($html, 'id="dwebin-template-runtime-js"') !== false) return $html;
-    if (stripos($html, '</head>') !== false) $html = str_ireplace('</head>', $style.'</head>', $html);
-    if (stripos($html, '</body>') !== false) return str_ireplace('</body>', $script.'</body>', $html);
-    return $html.$style.$script;
+    return $html;
 }
 function apply_countdown_event(string $html, array $inv): string {
     $eventAt = countdown_event_at_from_replacements($inv);
