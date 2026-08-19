@@ -1,0 +1,19 @@
+.idb-counter {
+  text-align: center;
+}
+
+.idb-counter__number {
+  margin: 0;
+  color: #6ec1e4;
+  font-size: 60px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.idb-counter__title {
+  margin: 8px 0 0;
+  color: #4a4a4a;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.2;
+}

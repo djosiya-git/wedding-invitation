@@ -253,6 +253,13 @@ function all_invitations(): array {
     $rows=db()->query("SELECT i.*, COUNT(g.id) guest_count FROM invitations i LEFT JOIN guests g ON g.invitation_slug=i.slug GROUP BY i.slug ORDER BY i.updated_at DESC")->fetchAll();
     return array_map('normalize_invitation', $rows);
 }
+function delete_invitation(string $slug): void {
+    $pdo = db();
+    $stmt = $pdo->prepare('DELETE FROM guests WHERE invitation_slug=?');
+    $stmt->execute([$slug]);
+    $stmt = $pdo->prepare('DELETE FROM invitations WHERE slug=?');
+    $stmt->execute([$slug]);
+}
 function all_guests(string $slug): array {
     $order=(cfg()['db_driver'] ?? 'sqlite') === 'mysql' ? 'name' : 'name COLLATE NOCASE';
     $stmt=db()->prepare('SELECT * FROM guests WHERE invitation_slug=? ORDER BY '.$order);
