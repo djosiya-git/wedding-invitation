@@ -354,7 +354,67 @@ function template_text_pattern(string $text): string {
     return '~'.implode($joiner, array_map(fn($part) => preg_quote($part, '~'), $parts)).'~iu';
 }
 function apply_template_runtime_fixes(string $html): string {
-    return $html;
+    $script = <<<'HTML'
+<script>
+(function(){
+  if (window.__DWEBIN_OPENING_VIDEO_FIX__) return;
+  window.__DWEBIN_OPENING_VIDEO_FIX__ = true;
+
+  function readSettings(el) {
+    try { return JSON.parse(el.getAttribute('data-settings') || '{}'); }
+    catch (e) { return {}; }
+  }
+
+  function setupOpeningVideos(playNow) {
+    document.querySelectorAll('[data-settings*="background_video_link"]').forEach(function (section) {
+      var settings = readSettings(section);
+      var url = settings.background_video_link;
+      if (!url) return;
+
+      var video = section.querySelector('video.elementor-background-video-hosted');
+      if (!video) return;
+
+      video.muted = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.setAttribute('playsinline', '');
+      video.setAttribute('muted', '');
+
+      if (!video.getAttribute('src')) {
+        video.setAttribute('src', url);
+        video.load();
+      }
+
+      if (settings.background_video_start && !video.dataset.dwebinSeeked) {
+        video.dataset.dwebinSeeked = '1';
+        video.addEventListener('loadedmetadata', function () {
+          try { video.currentTime = parseFloat(settings.background_video_start) || 0; } catch (e) {}
+        }, { once: true });
+      }
+
+      if (playNow) {
+        try {
+          video.currentTime = settings.background_video_start ? (parseFloat(settings.background_video_start) || 0) : video.currentTime;
+        } catch (e) {}
+        var p = video.play();
+        if (p && typeof p.catch === 'function') p.catch(function(){});
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function () { setupOpeningVideos(false); });
+  document.addEventListener('idbRevealStart', function () { setupOpeningVideos(true); });
+  document.addEventListener('click', function (event) {
+    if (event.target && event.target.closest && event.target.closest('#open')) {
+      setTimeout(function () { setupOpeningVideos(true); }, 80);
+      setTimeout(function () { setupOpeningVideos(true); }, 450);
+    }
+  }, true);
+})();
+</script>
+HTML;
+    if (strpos($html, '__DWEBIN_OPENING_VIDEO_FIX__') !== false) return $html;
+    return str_ireplace('</body>', $script.'</body>', $html);
 }
 function apply_countdown_event(string $html, array $inv): string {
     $eventAt = countdown_event_at_from_replacements($inv);
