@@ -356,33 +356,20 @@ function template_text_pattern(string $text): string {
 function apply_template_runtime_fixes(string $html): string {
     $style = <<<'HTML'
 <style id="dwebin-template-runtime-css">
-html.dwebin-template-ready .elementor-invisible,
-html.dwebin-template-ready .idb-reveal,
-html.dwebin-template-ready .idb-ef,
-html.dwebin-template-ready .af {
+html.dwebin-template-ready .elementor-invisible {
   visibility: visible !important;
   opacity: 1 !important;
-}
-html.dwebin-template-ready .idb-reveal,
-html.dwebin-template-ready .idb-ef,
-html.dwebin-template-ready .af {
-  transform: none !important;
 }
 </style>
 HTML;
     $script = <<<'HTML'
 <script id="dwebin-template-runtime-js">
 (function () {
-  function revealTemplate() {
+  function revealStuckElementorText() {
     document.documentElement.classList.add('dwebin-template-ready');
     document.querySelectorAll('.elementor-invisible').forEach(function (el) {
       el.classList.remove('elementor-invisible');
       el.classList.add('animated');
-    });
-    document.querySelectorAll('.idb-reveal,.idb-ef,.af').forEach(function (el) {
-      el.classList.add('active');
-      el.style.visibility = 'visible';
-      if (!el.style.opacity || el.style.opacity === '0') el.style.opacity = '1';
     });
   }
   function prioritizeMedia() {
@@ -397,13 +384,10 @@ HTML;
   prioritizeMedia();
   document.addEventListener('DOMContentLoaded', function () {
     prioritizeMedia();
-    setTimeout(revealTemplate, 900);
-    setTimeout(revealTemplate, 2200);
-    setTimeout(revealTemplate, 4200);
+    setTimeout(revealStuckElementorText, 6500);
   });
   window.addEventListener('load', function () {
     prioritizeMedia();
-    setTimeout(revealTemplate, 300);
   });
 })();
 </script>
