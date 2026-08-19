@@ -1,7 +1,7 @@
 param(
     [Parameter(Mandatory=$true)]
     [string]$SourceHost,
-    [string]$PublicBase = 'https://invitation.d-webindigital.web.id/admin/assets/template-assets/punakawan/uploads/',
+    [string]$PublicBase = 'https://invitation.d-webindigital.web.id/wp-content/uploads/',
     [string]$LocalRoot = 'assets/template-assets/punakawan/uploads'
 )
 
