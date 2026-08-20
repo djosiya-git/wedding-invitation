@@ -323,6 +323,91 @@ tbody tr:last-child td {
   gap: 18px;
 }
 
+.guest-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 18px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--shadow);
+}
+
+.guest-tab {
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: #526579;
+  padding: 11px 16px;
+  font: inherit;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.guest-tab:hover {
+  background: #f2faff;
+  color: var(--primary-dark);
+}
+
+.guest-tab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(22, 136, 199, 0.18);
+}
+
+.guest-tab-panel {
+  display: none;
+}
+
+.guest-tab-panel.active {
+  display: grid;
+  gap: 20px;
+}
+
+.guest-entry-form {
+  padding-bottom: 18px;
+}
+
+.guest-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.guest-entry-grid .span-2 {
+  grid-column: span 2;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.panel-count {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.panel-note {
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.import-export-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
 .copy-group {
   display: flex;
   gap: 8px;
@@ -666,6 +751,11 @@ td small {
   .guest-tools {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .guest-entry-grid,
+  .import-export-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1100px) {
@@ -715,8 +805,14 @@ td small {
   }
 
   .stats,
-  .guest-tools {
+  .guest-tools,
+  .guest-entry-grid,
+  .import-export-grid {
     grid-template-columns: 1fr;
+  }
+
+  .guest-entry-grid .span-2 {
+    grid-column: auto;
   }
 
   .sticky-tools,
