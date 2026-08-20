@@ -98,11 +98,11 @@ $guests = all_guests($slug);
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Kelola Tamu</title>
+  <title>Kelola Tamu</title><?=app_favicon_tags()?>
   <link rel="stylesheet" href="assets/admin.css">
 </head>
 <body>
-<aside class="sidebar"><div class="logo">DW</div><nav><a href="index.php">Dashboard</a><a href="templates.php">Template</a><a href="new.php">Buat Undangan</a><a class="active" href="#">Tamu</a><a href="logout.php">Keluar</a></nav></aside>
+<aside class="sidebar"><?=app_logo_mark()?><nav><a href="index.php">Dashboard</a><a href="templates.php">Template</a><a href="new.php">Buat Undangan</a><a class="active" href="#">Tamu</a><a href="logout.php">Keluar</a></nav></aside>
 <main class="app">
   <header>
     <div><h1>Kelola Tamu</h1><p><?=e($inv['title'])?> · <?=count($guests)?> tamu</p></div>

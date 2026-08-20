@@ -17,12 +17,12 @@ $ts = templates();
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Dashboard</title>
+  <title>Dashboard</title><?=app_favicon_tags()?>
   <link rel="stylesheet" href="assets/admin.css">
 </head>
 <body>
 <aside class="sidebar">
-  <div class="logo">DW</div>
+  <?=app_logo_mark()?>
   <nav>
     <a class="active" href="index.php">Dashboard</a>
     <a href="templates.php">Template</a>

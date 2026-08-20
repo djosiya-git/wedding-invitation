@@ -2,6 +2,16 @@
 function cfg(): array { static $c; return $c ??= require __DIR__.'/config.php'; }
 function start_session(): void { if (session_status() !== PHP_SESSION_ACTIVE) session_start(); }
 function e(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
+function app_logo_url(): string { return 'assets/brand/d-webin-logo.svg'; }
+function app_favicon_tags(): string {
+    $url = e(app_logo_url());
+    return '<link rel="icon" href="'.$url.'" sizes="any" type="image/svg+xml">'."\n"
+        .'<link rel="apple-touch-icon" href="'.$url.'">'."\n"
+        .'<meta name="msapplication-TileImage" content="'.$url.'">';
+}
+function app_logo_mark(string $class = 'logo'): string {
+    return '<div class="'.e($class).'"><img src="'.e(app_logo_url()).'" alt="D-Webin"></div>';
+}
 function slugify(string $s): string {
     $s = strtolower(trim($s)); $s = preg_replace('/[^a-z0-9]+/','-',$s); return trim($s,'-') ?: 'undangan-'.time();
 }
