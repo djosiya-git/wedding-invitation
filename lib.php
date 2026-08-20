@@ -292,10 +292,28 @@ function guest_by_id(string $slug, int $id): ?array {
     $stmt=db()->prepare('SELECT * FROM guests WHERE id=? AND invitation_slug=?'); $stmt->execute([$id,$slug]);
     $d=$stmt->fetch(); return $d?:null;
 }
+function public_base_url(): string {
+    $base = rtrim(cfg()['base_url'] ?: '', '/');
+    if ($base === '') return '';
+    return preg_replace('~/admin$~i', '', $base) ?? $base;
+}
 function guest_link(array $inv, array $guest): string {
-    $base=rtrim(cfg()['base_url'] ?: '', '/');
+    $base=public_base_url();
     $path='view.php?slug='.urlencode($inv['slug']).'&guest='.(int)$guest['id'];
     return ($base ? $base.'/' : '').$path;
+}
+function normalize_whatsapp_phone(string $phone): string {
+    $phone = preg_replace('/\D+/', '', $phone) ?? '';
+    if ($phone === '') return '';
+    if (substr($phone, 0, 1) === '0') return '62'.substr($phone, 1);
+    if (substr($phone, 0, 1) === '8') return '62'.$phone;
+    return $phone;
+}
+function guest_whatsapp_link(array $inv, array $guest): string {
+    $phone = normalize_whatsapp_phone((string)($guest['phone'] ?? ''));
+    if ($phone === '') return '';
+    $message = "Halo ".trim((string)$guest['name']).", berikut link undangan digitalnya:\n\n".guest_link($inv, $guest);
+    return 'https://wa.me/'.$phone.'?text='.rawurlencode($message);
 }
 function require_login(): void { start_session(); if(empty($_SESSION['admin'])){header('Location: login.php');exit;} }
 function scan_template(string $templateKey): array {

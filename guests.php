@@ -138,9 +138,71 @@ $guests = all_guests($slug);
     </div>
     <section class="panel">
       <div class="panel-head"><h2>Daftar Tamu</h2></div>
-      <?php if(!$guests):?><div class="empty">Belum ada tamu untuk pesanan ini.</div><?php else:?><div class="table-wrap"><table><thead><tr><th>Nama</th><th>Grup</th><th>Status</th><th>Link Personal</th><th></th></tr></thead><tbody><?php foreach($guests as $g):?><tr><td><b><?=e($g['name'])?></b><br><small><?=e($g['phone'])?></small></td><td><?=e($g['group_label'])?></td><td><span class="badge <?=e($g['status'])?>"><?=e($g['status'])?></span></td><td><input class="copy-field" readonly value="<?=e(guest_link($inv,$g))?>"></td><td class="actions"><a href="guests.php?slug=<?=urlencode($slug)?>&edit=<?=(int)$g['id']?>">Edit</a><form method="post" onsubmit="return confirm('Hapus tamu ini?')"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="<?=(int)$g['id']?>"><button class="link-button">Hapus</button></form></td></tr><?php endforeach?></tbody></table></div><?php endif?>
+      <?php if(!$guests):?>
+        <div class="empty">Belum ada tamu untuk pesanan ini.</div>
+      <?php else:?>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Nama</th><th>Grup</th><th>Status</th><th>Link Personal</th><th></th></tr>
+            </thead>
+            <tbody>
+              <?php foreach($guests as $g):?>
+                <?php $personalLink = guest_link($inv, $g); $waLink = guest_whatsapp_link($inv, $g); ?>
+                <tr>
+                  <td>
+                    <b><?=e($g['name'])?></b><br>
+                    <?php if($waLink):?>
+                      <a class="wa-link" target="_blank" rel="noopener" href="<?=e($waLink)?>"><?=e($g['phone'])?></a>
+                    <?php else:?>
+                      <small><?=e($g['phone'])?></small>
+                    <?php endif?>
+                  </td>
+                  <td><?=e($g['group_label'])?></td>
+                  <td><span class="badge <?=e($g['status'])?>"><?=e($g['status'])?></span></td>
+                  <td>
+                    <div class="copy-group">
+                      <input class="copy-field" readonly value="<?=e($personalLink)?>">
+                      <button class="btn copy-btn" type="button" data-copy="<?=e($personalLink)?>">Salin</button>
+                    </div>
+                  </td>
+                  <td class="actions">
+                    <?php if($waLink):?><a target="_blank" rel="noopener" href="<?=e($waLink)?>">Buka WA</a><?php endif?>
+                    <a href="guests.php?slug=<?=urlencode($slug)?>&edit=<?=(int)$g['id']?>">Edit</a>
+                    <form method="post" onsubmit="return confirm('Hapus tamu ini?')">
+                      <input type="hidden" name="action" value="delete">
+                      <input type="hidden" name="id" value="<?=(int)$g['id']?>">
+                      <button class="link-button">Hapus</button>
+                    </form>
+                  </td>
+                </tr>
+              <?php endforeach?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif?>
     </section>
   </section>
 </main>
+<script>
+document.addEventListener('click', function (event) {
+  var button = event.target.closest('.copy-btn');
+  if (!button) return;
+  var text = button.getAttribute('data-copy') || '';
+  var done = function () {
+    var old = button.textContent;
+    button.textContent = 'Tersalin';
+    setTimeout(function () { button.textContent = old; }, 1400);
+  };
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text).then(done).catch(function () {});
+    return;
+  }
+  var field = button.closest('.copy-group').querySelector('.copy-field');
+  field.focus();
+  field.select();
+  try { document.execCommand('copy'); done(); } catch (e) {}
+});
+</script>
 </body>
 </html>
