@@ -107,6 +107,10 @@ $guests = all_guests($slug);
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Kelola Tamu</title><?=app_favicon_tags()?>
   <link rel="stylesheet" href="assets/admin.css">
+  <style>
+    .message-copy{display:grid;gap:8px;width:320px}
+    .message-preview{min-height:120px;font-size:12px;line-height:1.45;color:#4f5965;white-space:pre-wrap}
+  </style>
 </head>
 <body>
 <aside class="sidebar"><?=app_logo_mark()?><nav><a href="index.php">Dashboard</a><a href="templates.php">Template</a><a href="new.php">Buat Undangan</a><a class="active" href="#">Tamu</a><a href="logout.php">Keluar</a></nav></aside>
@@ -161,11 +165,11 @@ $guests = all_guests($slug);
         <div class="table-wrap">
           <table>
             <thead>
-              <tr><th>Nama</th><th>Grup</th><th>Status</th><th>Link Personal</th><th></th></tr>
+              <tr><th>Nama</th><th>Grup</th><th>Status</th><th>Link Personal</th><th>Pesan WhatsApp</th><th></th></tr>
             </thead>
             <tbody>
               <?php foreach($guests as $g):?>
-                <?php $personalLink = guest_link($inv, $g); $waLink = guest_whatsapp_link($inv, $g); ?>
+                <?php $personalLink = guest_link($inv, $g); $waMessage = render_whatsapp_message($inv, $g); $waLink = guest_whatsapp_link($inv, $g); ?>
                 <tr>
                   <td>
                     <b><?=e($g['name'])?></b><br>
@@ -181,6 +185,12 @@ $guests = all_guests($slug);
                     <div class="copy-group">
                       <input class="copy-field" readonly value="<?=e($personalLink)?>">
                       <button class="btn copy-btn" type="button" data-copy="<?=e($personalLink)?>">Salin</button>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="message-copy">
+                      <textarea class="message-preview" readonly rows="5"><?=e($waMessage)?></textarea>
+                      <button class="btn copy-btn" type="button" data-copy="<?=e($waMessage)?>">Salin Pesan</button>
                     </div>
                   </td>
                   <td class="actions">
@@ -215,7 +225,9 @@ document.addEventListener('click', function (event) {
     navigator.clipboard.writeText(text).then(done).catch(function () {});
     return;
   }
-  var field = button.closest('.copy-group').querySelector('.copy-field');
+  var holder = button.closest('.copy-group') || button.closest('.message-copy');
+  var field = holder ? holder.querySelector('.copy-field, .message-preview') : null;
+  if (!field) return;
   field.focus();
   field.select();
   try { document.execCommand('copy'); done(); } catch (e) {}
