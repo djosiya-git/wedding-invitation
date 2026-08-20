@@ -12,6 +12,15 @@ function app_favicon_tags(): string {
 function app_logo_mark(string $class = 'logo'): string {
     return '<div class="'.e($class).'"><img src="'.e(app_logo_url()).'" alt="D-Webin"></div>';
 }
+function default_whatsapp_message_template(): string {
+    return "Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, {nama_tamu} untuk menghadiri acara pernikahan kami.\n\n"
+        ."Berikut link undangan kami, untuk info lengkap dari acara, bisa kunjungi:\n\n"
+        ."{link_undangan}\n\n"
+        ."Merupakan suatu kebahagiaan bagi kami apabila Bapak/Ibu/Saudara/i berkenan untuk hadir dan memberikan doa restu.\n\n"
+        ."Terima Kasih\n\n"
+        ."Hormat kami,\n"
+        ."{judul}";
+}
 function slugify(string $s): string {
     $s = strtolower(trim($s)); $s = preg_replace('/[^a-z0-9]+/','-',$s); return trim($s,'-') ?: 'undangan-'.time();
 }
@@ -88,6 +97,7 @@ function init_db(PDO $pdo, string $driver): void {
             template VARCHAR(100) NOT NULL,
             status VARCHAR(30) NOT NULL DEFAULT 'draft',
             event_at VARCHAR(40) NULL,
+            whatsapp_message_template LONGTEXT NULL,
             replacements LONGTEXT NOT NULL,
             created_at VARCHAR(40) NOT NULL,
             updated_at VARCHAR(40) NOT NULL
@@ -111,6 +121,7 @@ function init_db(PDO $pdo, string $driver): void {
             template TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'draft',
             event_at TEXT NOT NULL DEFAULT '',
+            whatsapp_message_template TEXT NOT NULL DEFAULT '',
             replacements TEXT NOT NULL DEFAULT '[]',
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
@@ -129,6 +140,7 @@ function init_db(PDO $pdo, string $driver): void {
         )");
     }
     ensure_invitation_event_at_column($pdo, $driver);
+    ensure_invitation_whatsapp_message_column($pdo, $driver);
     if ($driver === 'mysql') {
         $stmt=$pdo->query("SHOW INDEX FROM guests WHERE Key_name='idx_guests_invitation'");
         if(!$stmt->fetch()) $pdo->exec("CREATE INDEX idx_guests_invitation ON guests(invitation_slug, name)");
@@ -152,6 +164,21 @@ function ensure_invitation_event_at_column(PDO $pdo, string $driver): void {
         }
     }
     if (!$has) $pdo->exec("ALTER TABLE invitations ADD COLUMN event_at TEXT NOT NULL DEFAULT ''");
+}
+function ensure_invitation_whatsapp_message_column(PDO $pdo, string $driver): void {
+    if ($driver === 'mysql') {
+        $stmt = $pdo->query("SHOW COLUMNS FROM invitations LIKE 'whatsapp_message_template'");
+        if (!$stmt->fetch()) $pdo->exec("ALTER TABLE invitations ADD whatsapp_message_template LONGTEXT NULL AFTER event_at");
+        return;
+    }
+    $has = false;
+    foreach ($pdo->query("PRAGMA table_info(invitations)") as $column) {
+        if (($column['name'] ?? '') === 'whatsapp_message_template') {
+            $has = true;
+            break;
+        }
+    }
+    if (!$has) $pdo->exec("ALTER TABLE invitations ADD COLUMN whatsapp_message_template TEXT NOT NULL DEFAULT ''");
 }
 function invitation_path(string $slug): string { return __DIR__.'/storage/invitations/'.basename($slug).'.json'; }
 function migrate_sqlite_invitations(PDO $pdo): void {
@@ -204,6 +231,7 @@ function normalize_invitation(array $d): array {
         $d['replacements']=is_array($decoded)?$decoded:[];
     }
     $d['event_at'] = normalize_event_at($d['event_at'] ?? '');
+    $d['whatsapp_message_template'] = trim((string)($d['whatsapp_message_template'] ?? '')) ?: default_whatsapp_message_template();
     return $d;
 }
 function normalize_event_at(?string $value): string {
@@ -242,19 +270,23 @@ function load_invitation(string $slug): ?array {
 function save_invitation(array $d): void {
     $now=date('c'); $d['updated_at']=$now; if(empty($d['created_at']))$d['created_at']=$now;
     $d['event_at'] = normalize_event_at($d['event_at'] ?? '');
-    $sql='INSERT INTO invitations (slug,title,template,status,event_at,replacements,created_at,updated_at)
-        VALUES (:slug,:title,:template,:status,:event_at,:replacements,:created_at,:updated_at)
+    $d['whatsapp_message_template'] = trim((string)($d['whatsapp_message_template'] ?? '')) ?: default_whatsapp_message_template();
+    $sql='INSERT INTO invitations (slug,title,template,status,event_at,whatsapp_message_template,replacements,created_at,updated_at)
+        VALUES (:slug,:title,:template,:status,:event_at,:whatsapp_message_template,:replacements,:created_at,:updated_at)
         ON CONFLICT(slug) DO UPDATE SET title=excluded.title, template=excluded.template, status=excluded.status, event_at=excluded.event_at,
+        whatsapp_message_template=excluded.whatsapp_message_template,
         replacements=excluded.replacements, updated_at=excluded.updated_at';
     if ((cfg()['db_driver'] ?? 'sqlite') === 'mysql') {
-        $sql='INSERT INTO invitations (slug,title,template,status,event_at,replacements,created_at,updated_at)
-            VALUES (:slug,:title,:template,:status,:event_at,:replacements,:created_at,:updated_at)
+        $sql='INSERT INTO invitations (slug,title,template,status,event_at,whatsapp_message_template,replacements,created_at,updated_at)
+            VALUES (:slug,:title,:template,:status,:event_at,:whatsapp_message_template,:replacements,:created_at,:updated_at)
             ON DUPLICATE KEY UPDATE title=VALUES(title), template=VALUES(template), status=VALUES(status), event_at=VALUES(event_at),
+            whatsapp_message_template=VALUES(whatsapp_message_template),
             replacements=VALUES(replacements), updated_at=VALUES(updated_at)';
     }
     $stmt=db()->prepare($sql);
     $stmt->execute([
         ':slug'=>$d['slug'], ':title'=>$d['title'], ':template'=>$d['template'], ':status'=>$d['status']??'draft', ':event_at'=>$d['event_at'],
+        ':whatsapp_message_template'=>$d['whatsapp_message_template'],
         ':replacements'=>json_encode($d['replacements']??[], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
         ':created_at'=>$d['created_at'], ':updated_at'=>$d['updated_at']
     ]);
@@ -312,8 +344,18 @@ function normalize_whatsapp_phone(string $phone): string {
 function guest_whatsapp_link(array $inv, array $guest): string {
     $phone = normalize_whatsapp_phone((string)($guest['phone'] ?? ''));
     if ($phone === '') return '';
-    $message = "Halo ".trim((string)$guest['name']).", berikut link undangan digitalnya:\n\n".guest_link($inv, $guest);
+    $message = render_whatsapp_message($inv, $guest);
     return 'https://wa.me/'.$phone.'?text='.rawurlencode($message);
+}
+function render_whatsapp_message(array $inv, array $guest): string {
+    $template = trim((string)($inv['whatsapp_message_template'] ?? '')) ?: default_whatsapp_message_template();
+    return strtr($template, [
+        '{nama_tamu}' => trim((string)($guest['name'] ?? '')),
+        '{nama}' => trim((string)($guest['name'] ?? '')),
+        '{link_undangan}' => guest_link($inv, $guest),
+        '{link}' => guest_link($inv, $guest),
+        '{judul}' => trim((string)($inv['title'] ?? '')),
+    ]);
 }
 function require_login(): void { start_session(); if(empty($_SESSION['admin'])){header('Location: login.php');exit;} }
 function scan_template(string $templateKey): array {

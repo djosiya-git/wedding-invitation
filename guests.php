@@ -45,6 +45,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    if ($action === 'save_whatsapp_template') {
+        $inv['whatsapp_message_template'] = trim($_POST['whatsapp_message_template'] ?? '') ?: default_whatsapp_message_template();
+        save_invitation($inv);
+        header('Location: guests.php?slug='.urlencode($slug).'&template_saved=1');
+        exit;
+    }
+
     if ($action === 'import') {
         $imported = 0;
         if (($_FILES['guest_csv']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK) {
@@ -116,6 +123,7 @@ $guests = all_guests($slug);
   <?php if(isset($_GET['saved'])):?><div class="success">Data tamu tersimpan.</div><?php endif?>
   <?php if(isset($_GET['deleted'])):?><div class="success">Data tamu dihapus.</div><?php endif?>
   <?php if(isset($_GET['imported'])):?><div class="success"><?=e((string)(int)$_GET['imported'])?> tamu berhasil diimport.</div><?php endif?>
+  <?php if(isset($_GET['template_saved'])):?><div class="success">Template pesan WhatsApp tersimpan.</div><?php endif?>
   <section class="guest-grid">
     <div class="guest-tools">
       <form class="panel form" method="post">
@@ -134,6 +142,15 @@ $guests = all_guests($slug);
         <input type="hidden" name="action" value="import">
         <label>File CSV<input type="file" name="guest_csv" accept=".csv,text/csv" required></label>
         <button class="btn primary">Import CSV</button>
+      </form>
+      <form class="panel form" method="post">
+        <h2>Template Pesan WhatsApp</h2>
+        <input type="hidden" name="action" value="save_whatsapp_template">
+        <label>Isi pesan
+          <textarea name="whatsapp_message_template" rows="12"><?=e($inv['whatsapp_message_template'] ?? default_whatsapp_message_template())?></textarea>
+        </label>
+        <small>Pakai <b>{nama_tamu}</b> untuk nama tamu dan <b>{link_undangan}</b> untuk link personal.</small>
+        <button class="btn primary">Simpan Template Pesan</button>
       </form>
     </div>
     <section class="panel">
