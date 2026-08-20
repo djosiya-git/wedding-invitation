@@ -106,7 +106,7 @@ $guests = all_guests($slug);
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Kelola Tamu</title><?=app_favicon_tags()?>
-  <link rel="stylesheet" href="assets/admin.css">
+  <?=app_stylesheet_tags()?>
 </head>
 <body>
 <aside class="sidebar"><?=app_logo_mark()?><nav><a href="index.php">Dashboard</a><a href="templates.php">Template</a><a href="new.php">Buat Undangan</a><a class="active" href="#">Tamu</a><a href="logout.php">Keluar</a></nav></aside>

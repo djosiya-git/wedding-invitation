@@ -86,7 +86,7 @@ function rows(array $items, array $existing, string $type): void {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Editor</title><?=app_favicon_tags()?>
-  <link rel="stylesheet" href="assets/admin.css">
+  <?=app_stylesheet_tags()?>
 </head>
 <body>
 <aside class="sidebar">

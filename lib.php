@@ -9,6 +9,11 @@ function app_favicon_tags(): string {
         .'<link rel="apple-touch-icon" href="'.$url.'">'."\n"
         .'<meta name="msapplication-TileImage" content="'.$url.'">';
 }
+function app_stylesheet_tags(): string {
+    $path = __DIR__.'/assets/admin.css';
+    $version = is_file($path) ? (string)filemtime($path) : (string)time();
+    return '<link rel="stylesheet" href="assets/admin.css?v='.e($version).'">';
+}
 function app_logo_mark(string $class = 'logo'): string {
     return '<div class="'.e($class).'"><img src="'.e(app_logo_url()).'" alt="D-Webin"></div>';
 }
