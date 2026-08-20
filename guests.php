@@ -107,10 +107,6 @@ $guests = all_guests($slug);
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Kelola Tamu</title><?=app_favicon_tags()?>
   <link rel="stylesheet" href="assets/admin.css">
-  <style>
-    .message-copy{display:grid;gap:8px;width:320px}
-    .message-preview{min-height:120px;font-size:12px;line-height:1.45;color:#4f5965;white-space:pre-wrap}
-  </style>
 </head>
 <body>
 <aside class="sidebar"><?=app_logo_mark()?><nav><a href="index.php">Dashboard</a><a href="templates.php">Template</a><a href="new.php">Buat Undangan</a><a class="active" href="#">Tamu</a><a href="logout.php">Keluar</a></nav></aside>
