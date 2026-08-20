@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="D-Webin Digital">
+  <defs>
+    <linearGradient id="dwebin-blue" x1="206" y1="193" x2="820" y2="831" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#20d5f4"/>
+      <stop offset=".48" stop-color="#118ef2"/>
+      <stop offset="1" stop-color="#092db8"/>
+    </linearGradient>
+    <filter id="soft" x="-8%" y="-8%" width="116%" height="116%">
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#0c5fd8" flood-opacity=".15"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="0" fill="#fff"/>
+  <g fill="none" stroke="url(#dwebin-blue)" stroke-linecap="round" stroke-linejoin="round" filter="url(#soft)">
+    <path d="M405 258h191c171 0 306 123 306 254S767 766 596 766H421V654" stroke-width="82"/>
+    <path d="M405 258v116L310 279" stroke-width="82"/>
+    <path d="M421 766V647L323 745" stroke-width="82"/>
+    <path d="M578 322c84 18 145 92 145 190s-61 172-145 190" stroke-width="36"/>
+    <path d="M724 386c-44 58-97 97-161 126 64 29 117 68 161 126" stroke-width="36"/>
+    <path d="M174 386h184l82 82h98" stroke-width="34"/>
+    <path d="M108 486h214l83 64h156" stroke-width="34"/>
+    <path d="M174 610h355" stroke-width="34"/>
+    <path d="M250 716h67" stroke-width="34"/>
+    <path d="M727 511h1" stroke-width="58"/>
+    <path d="M605 550h1" stroke-width="54"/>
+    <path d="M728 638h1" stroke-width="52"/>
+    <path d="M174 386h1M108 486h1M174 610h1M250 716h1" stroke-width="36"/>
+  </g>
+  <g fill="#fff">
+    <circle cx="174" cy="386" r="18"/>
+    <circle cx="108" cy="486" r="18"/>
+    <circle cx="174" cy="610" r="18"/>
+    <circle cx="250" cy="716" r="18"/>
+    <circle cx="605" cy="550" r="17"/>
+  </g>
+</svg>
