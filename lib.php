@@ -81,6 +81,10 @@ function template_category_price_label(string $categoryKey): string {
     return $price > 0 ? format_rupiah($price) : 'Segera hadir';
 }
 function template_thumbnail_url(string $templateFile): string {
+    $key = basename($templateFile, '.html');
+    $generated = __DIR__.'/assets/template-thumbs/'.$key.'.png';
+    if (is_file($generated)) return 'assets/template-thumbs/'.$key.'.png';
+
     $path = __DIR__.'/templates/'.basename($templateFile);
     if (!is_file($path)) return '';
     $html = file_get_contents($path) ?: '';

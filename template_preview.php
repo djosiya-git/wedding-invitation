@@ -32,4 +32,13 @@ if (isset($_GET['mute'])) {
 HTML;
     $html = str_ireplace('</body>', $mute.'</body>', $html);
 }
+if (isset($_GET['thumb'])) {
+    $thumbCss = <<<'HTML'
+<style id="dwebin-thumbnail-mode">
+html, body { scrollbar-width: none !important; }
+html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+</style>
+HTML;
+    $html = str_ireplace('</head>', $thumbCss.'</head>', $html);
+}
 echo $html;
