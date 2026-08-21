@@ -525,6 +525,12 @@ tbody tr:last-child td {
   gap: 16px;
 }
 
+.form-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
 .form label,
 .sticky-tools label {
   display: grid;
@@ -730,7 +736,14 @@ td small {
 }
 
 .login-card small {
+  display: block;
   color: var(--muted);
+  margin-top: 8px;
+}
+
+.login-card small a {
+  color: var(--primary-dark);
+  font-weight: 900;
 }
 
 .login-card .brand-mark {
@@ -807,6 +820,7 @@ td small {
   .stats,
   .guest-tools,
   .guest-entry-grid,
+  .form-split,
   .import-export-grid {
     grid-template-columns: 1fr;
   }

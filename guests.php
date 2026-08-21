@@ -1,6 +1,5 @@
 <?php
 require __DIR__.'/lib.php';
-require_login();
 
 $slug = $_GET['slug'] ?? '';
 $inv = load_invitation($slug);
@@ -8,6 +7,8 @@ if (!$inv) {
     http_response_code(404);
     exit('Undangan tidak ditemukan');
 }
+require_invitation_access($slug);
+$isAdmin = is_admin_user();
 
 function download_csv(string $filename, array $headers, array $rows): void {
     header('Content-Type: text/csv; charset=utf-8');
@@ -111,14 +112,27 @@ $guests = all_guests($slug);
   <?=app_stylesheet_tags()?>
 </head>
 <body>
-<aside class="sidebar"><?=app_logo_mark()?><nav><a href="index.php">Dashboard</a><a href="templates.php">Template</a><a href="new.php">Buat Undangan</a><a class="active" href="#">Tamu</a><a href="logout.php">Keluar</a></nav></aside>
+<aside class="sidebar">
+  <?=app_logo_mark()?>
+  <nav>
+    <?php if($isAdmin):?>
+      <a href="index.php">Dashboard</a>
+      <a href="templates.php">Template</a>
+      <a href="new.php">Buat Undangan</a>
+    <?php endif?>
+    <a class="active" href="#">Tamu</a>
+    <a href="logout.php">Keluar</a>
+  </nav>
+</aside>
 <main class="app">
   <header>
     <div><h1>Kelola Tamu</h1><p><?=e($inv['title'])?> · <?=count($guests)?> tamu</p></div>
+    <?php if($isAdmin):?>
     <div class="header-actions">
       <a class="btn" href="editor.php?slug=<?=urlencode($slug)?>">Editor</a>
       <a class="btn primary" target="_blank" href="view.php?slug=<?=urlencode($slug)?>">Preview</a>
     </div>
+    <?php endif?>
   </header>
   <?php if(isset($_GET['saved'])):?><div class="success">Data tamu tersimpan.</div><?php endif?>
   <?php if(isset($_GET['deleted'])):?><div class="success">Data tamu dihapus.</div><?php endif?>
