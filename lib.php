@@ -44,6 +44,8 @@ function templates(): array {
             'file' => basename($path),
             'category' => $category,
             'category_key' => $prefix,
+            'price' => template_category_price($prefix),
+            'price_label' => template_category_price_label($prefix),
             'sort' => str_pad((string)(($categoryOrder[$prefix] ?? 99) + 1), 2, '0', STR_PAD_LEFT).'-'.$number,
         ];
     }
@@ -59,12 +61,44 @@ function template_categories(): array {
         'vintage' => 'Vintage',
     ];
 }
+function template_category_prices(): array {
+    return [
+        'animation' => 75000,
+        'minimalist' => 90000,
+        'luxury' => 0,
+        'vintage' => 105000,
+    ];
+}
+function format_rupiah(int $amount): string {
+    return 'Rp'.number_format($amount, 0, ',', '.');
+}
+function template_category_price(string $categoryKey): int {
+    return template_category_prices()[$categoryKey] ?? 0;
+}
+function template_category_price_label(string $categoryKey): string {
+    $price = template_category_price($categoryKey);
+    return $price > 0 ? format_rupiah($price) : 'Segera hadir';
+}
 function templates_by_category(): array {
     $groups = [];
-    foreach (template_categories() as $key => $label) $groups[$key] = ['label' => $label, 'templates' => []];
+    foreach (template_categories() as $key => $label) {
+        $groups[$key] = [
+            'label' => $label,
+            'price' => template_category_price($key),
+            'price_label' => template_category_price_label($key),
+            'templates' => [],
+        ];
+    }
     foreach (templates() as $key => $template) {
         $categoryKey = $template['category_key'] ?? strtolower($template['category']);
-        if (!isset($groups[$categoryKey])) $groups[$categoryKey] = ['label' => $template['category'], 'templates' => []];
+        if (!isset($groups[$categoryKey])) {
+            $groups[$categoryKey] = [
+                'label' => $template['category'],
+                'price' => template_category_price($categoryKey),
+                'price_label' => template_category_price_label($categoryKey),
+                'templates' => [],
+            ];
+        }
         $groups[$categoryKey]['templates'][$key] = $template;
     }
     return $groups;

@@ -44,6 +44,7 @@ $items = all_invitations();
   <nav>
     <a href="index.php">Dashboard</a>
     <a href="templates.php">Template</a>
+    <a href="prices.php">Harga Template</a>
     <a href="new.php">Buat Undangan</a>
     <a class="active" href="customers.php">Pelanggan</a>
     <a href="logout.php">Keluar</a>

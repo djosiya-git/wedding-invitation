@@ -26,6 +26,7 @@ $ts = templates();
   <nav>
     <a class="active" href="index.php">Dashboard</a>
     <a href="templates.php">Template</a>
+    <a href="prices.php">Harga Template</a>
     <a href="new.php">Buat Undangan</a>
     <a href="customers.php">Pelanggan</a>
     <a href="logout.php">Keluar</a>

@@ -118,6 +118,7 @@ $guests = all_guests($slug);
     <?php if($isAdmin):?>
       <a href="index.php">Dashboard</a>
       <a href="templates.php">Template</a>
+      <a href="prices.php">Harga Template</a>
       <a href="new.php">Buat Undangan</a>
       <a href="customers.php">Pelanggan</a>
     <?php endif?>

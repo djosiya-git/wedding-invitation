@@ -94,6 +94,7 @@ function rows(array $items, array $existing, string $type): void {
   <nav>
     <a href="index.php">Dashboard</a>
     <a href="templates.php">Template</a>
+    <a href="prices.php">Harga Template</a>
     <a href="customers.php">Pelanggan</a>
     <a class="active" href="#">Editor</a>
     <a href="logout.php">Keluar</a>
