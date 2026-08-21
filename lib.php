@@ -46,6 +46,7 @@ function templates(): array {
             'category_key' => $prefix,
             'price' => template_category_price($prefix),
             'price_label' => template_category_price_label($prefix),
+            'thumbnail_url' => template_thumbnail_url(basename($path)),
             'sort' => str_pad((string)(($categoryOrder[$prefix] ?? 99) + 1), 2, '0', STR_PAD_LEFT).'-'.$number,
         ];
     }
@@ -78,6 +79,34 @@ function template_category_price(string $categoryKey): int {
 function template_category_price_label(string $categoryKey): string {
     $price = template_category_price($categoryKey);
     return $price > 0 ? format_rupiah($price) : 'Segera hadir';
+}
+function template_thumbnail_url(string $templateFile): string {
+    $path = __DIR__.'/templates/'.basename($templateFile);
+    if (!is_file($path)) return '';
+    $html = file_get_contents($path) ?: '';
+    $candidates = [];
+    if (preg_match('/"featuredImage"\s*:\s*"([^"]+)"/', $html, $m)) $candidates[] = stripcslashes($m[1]);
+    if (preg_match('/<meta\s+property=["\']og:image["\']\s+content=["\']([^"\']+)["\']/i', $html, $m)) $candidates[] = html_entity_decode($m[1], ENT_QUOTES, 'UTF-8');
+    if (preg_match('/<img[^>]+src=["\']([^"\']+\.(?:webp|jpg|jpeg|png))(?:\?[^"\']*)?["\']/i', $html, $m)) $candidates[] = html_entity_decode($m[1], ENT_QUOTES, 'UTF-8');
+
+    foreach ($candidates as $url) {
+        $resolved = local_template_asset_url($url);
+        if ($resolved !== '') return $resolved;
+    }
+    return '';
+}
+function local_template_asset_url(string $url): string {
+    $url = str_replace('\/', '/', $url);
+    $parts = parse_url($url);
+    $path = $parts['path'] ?? '';
+    $uploads = '/wp-content/uploads/';
+    $pos = strpos($path, $uploads);
+    if ($pos === false) return '';
+    $relative = substr($path, $pos + strlen($uploads));
+    $relative = str_replace(['\\', '..'], ['/', ''], rawurldecode($relative));
+    $assetPath = __DIR__.'/assets/template-assets/punakawan/uploads/'.$relative;
+    if (!is_file($assetPath)) return '';
+    return 'assets/template-assets/punakawan/uploads/'.implode('/', array_map('rawurlencode', explode('/', $relative)));
 }
 function templates_by_category(): array {
     $groups = [];
