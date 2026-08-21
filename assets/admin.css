@@ -390,6 +390,13 @@ tbody tr:last-child td {
   align-items: center;
 }
 
+.customer-row-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(220px, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+}
+
 .panel-count {
   color: var(--muted);
   font-size: 13px;
@@ -821,6 +828,7 @@ td small {
   .guest-tools,
   .guest-entry-grid,
   .form-split,
+  .customer-row-form,
   .import-export-grid {
     grid-template-columns: 1fr;
   }

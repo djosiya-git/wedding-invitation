@@ -119,6 +119,7 @@ $guests = all_guests($slug);
       <a href="index.php">Dashboard</a>
       <a href="templates.php">Template</a>
       <a href="new.php">Buat Undangan</a>
+      <a href="customers.php">Pelanggan</a>
     <?php endif?>
     <a class="active" href="#">Tamu</a>
     <a href="logout.php">Keluar</a>

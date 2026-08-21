@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <title>Pesanan Baru</title><?=app_favicon_tags()?><?=app_stylesheet_tags()?>
 </head>
 <body>
-<aside class="sidebar"><?=app_logo_mark()?><nav><a href="index.php">Dashboard</a><a href="templates.php">Template</a><a class="active" href="new.php">Buat Undangan</a><a href="logout.php">Keluar</a></nav></aside>
+<aside class="sidebar"><?=app_logo_mark()?><nav><a href="index.php">Dashboard</a><a href="templates.php">Template</a><a class="active" href="new.php">Buat Undangan</a><a href="customers.php">Pelanggan</a><a href="logout.php">Keluar</a></nav></aside>
 <main class="app narrow">
   <header>
     <div><h1>Buat Undangan Baru</h1><p>Template yang dipilih akan menjadi dasar tampilan undangan.</p></div>
