@@ -13,7 +13,11 @@ foreach (templates_by_category() as $key => $group) {
             'name' => $template['name'],
             'category' => $template['category'],
             'category_key' => $template['category_key'],
+            'base_price_label' => $template['base_price_label'],
             'price_label' => $template['price_label'],
+            'has_discount' => $template['has_discount'],
+            'discount_until' => $template['discount_until'],
+            'discount_label' => $template['discount_label'],
             'thumbnail_url' => '/admin/'.$template['thumbnail_url'],
             'preview_url' => '/admin/template_preview.php?template='.rawurlencode($templateKey),
         ];

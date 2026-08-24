@@ -464,6 +464,11 @@ tbody tr:last-child td {
   gap: 20px;
 }
 
+.admin-template-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
 .template-category {
   margin-bottom: 30px;
 }
@@ -505,6 +510,13 @@ tbody tr:last-child td {
   border: 1px solid var(--line);
   border-radius: 14px;
   box-shadow: var(--shadow);
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease;
+}
+
+.template-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(22, 136, 199, 0.36);
+  box-shadow: 0 24px 58px rgba(22, 136, 199, 0.16);
 }
 
 .preview-frame {
@@ -520,6 +532,80 @@ tbody tr:last-child td {
   transform: scale(.44);
   transform-origin: 0 0;
   pointer-events: none;
+}
+
+.template-thumb-link {
+  position: relative;
+  display: block;
+  height: 380px;
+  overflow: hidden;
+  background: #d9f4ff;
+}
+
+.template-thumb-link::before {
+  content: "Preview";
+  position: absolute;
+  z-index: 2;
+  left: 12px;
+  top: 12px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--primary-dark);
+  font-size: 11px;
+  font-weight: 900;
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity .22s ease, transform .22s ease;
+}
+
+.template-thumb-link::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 38%;
+  background: linear-gradient(180deg, transparent, rgba(20, 50, 74, 0.18));
+}
+
+.template-thumb-link:hover::before {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.template-thumb-link img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .6s ease, filter .6s ease;
+}
+
+.template-thumb-link:hover img {
+  transform: scale(1.045);
+  filter: saturate(1.05) contrast(1.02);
+}
+
+.thumb-empty {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.discount-badge {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  top: 12px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #ffeff2;
+  color: #c52b45;
+  border: 1px solid rgba(197, 43, 69, 0.18);
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(197, 43, 69, 0.14);
 }
 
 .template-info {
@@ -546,9 +632,34 @@ tbody tr:last-child td {
   white-space: nowrap;
 }
 
+.template-meta .sale-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #c52b45;
+}
+
+.template-meta del {
+  color: #7d8a96;
+  font-weight: 800;
+}
+
 .template-info h3 {
   font-size: 19px;
   margin: 4px 0 14px;
+}
+
+.template-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.discount-note {
+  color: #c52b45;
+  font-size: 12px;
+  font-weight: 800;
+  margin: -8px 0 12px;
 }
 
 .price-grid {
@@ -563,6 +674,23 @@ tbody tr:last-child td {
   border-radius: 14px;
   box-shadow: var(--shadow);
   padding: 22px;
+}
+
+.price-settings {
+  margin-bottom: 24px;
+}
+
+.editable-price-grid .price-card {
+  display: grid;
+  gap: 12px;
+}
+
+.editable-price-grid label,
+.discount-panel label {
+  display: grid;
+  gap: 7px;
+  color: #344657;
+  font-weight: 800;
 }
 
 .price-card > span {
@@ -592,6 +720,60 @@ tbody tr:last-child td {
 
 .muted-card {
   opacity: .74;
+}
+
+.discount-panel {
+  padding: 20px;
+}
+
+.discount-table {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.discount-table table {
+  min-width: 1180px;
+}
+
+.discount-table td {
+  vertical-align: middle;
+}
+
+.discount-template-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 230px;
+}
+
+.discount-template-cell img {
+  width: 52px;
+  height: 74px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: var(--primary-soft);
+}
+
+.discount-template-cell strong,
+.discount-template-cell small {
+  display: block;
+}
+
+.discount-template-cell small,
+.discount-table td small {
+  margin-top: 4px;
+}
+
+.badge.promo {
+  background: #ffeff2;
+  color: #c52b45;
+}
+
+.badge.expired {
+  background: #fff4d8;
+  color: #9a6a00;
 }
 
 .template-info .btn {
@@ -835,6 +1017,10 @@ td small {
 }
 
 @media (max-width: 1200px) {
+  .admin-template-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .guest-grid {
     grid-template-columns: 1fr;
   }
@@ -896,6 +1082,7 @@ td small {
   }
 
   .stats,
+  .admin-template-grid,
   .guest-tools,
   .guest-entry-grid,
   .form-split,

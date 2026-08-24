@@ -33,19 +33,28 @@ function templates(): array {
     $out = [];
     $categories = template_categories();
     $categoryOrder = array_flip(array_keys($categories));
+    $discounts = active_template_discounts();
     foreach (glob(__DIR__.'/templates/*.html') ?: [] as $path) {
         $key = basename($path, '.html');
         if (!preg_match('/^([a-z]+)-(\d+)$/', $key, $m)) continue;
         $prefix = $m[1];
         $number = $m[2];
         $category = $categories[$prefix] ?? ucfirst($prefix);
+        $basePrice = template_category_price($prefix);
+        $discount = $discounts[$key] ?? null;
+        $finalPrice = $discount ? max(0, (int)$discount['price']) : $basePrice;
         $out[$key] = [
             'name' => $category.' '.$number,
             'file' => basename($path),
             'category' => $category,
             'category_key' => $prefix,
-            'price' => template_category_price($prefix),
-            'price_label' => template_category_price_label($prefix),
+            'base_price' => $basePrice,
+            'base_price_label' => $basePrice > 0 ? format_rupiah($basePrice) : 'Segera hadir',
+            'price' => $finalPrice,
+            'price_label' => $finalPrice > 0 ? format_rupiah($finalPrice) : 'Segera hadir',
+            'has_discount' => (bool)$discount,
+            'discount_until' => $discount['until'] ?? '',
+            'discount_label' => $discount ? 'Diskon sampai '.format_datetime_label((string)$discount['until']) : '',
             'thumbnail_url' => template_thumbnail_url(basename($path)),
             'sort' => str_pad((string)(($categoryOrder[$prefix] ?? 99) + 1), 2, '0', STR_PAD_LEFT).'-'.$number,
         ];
@@ -63,6 +72,18 @@ function template_categories(): array {
     ];
 }
 function template_category_prices(): array {
+    $defaults = default_template_category_prices();
+    try {
+        $saved = app_setting('template_category_prices');
+        if (is_array($saved)) {
+            foreach ($defaults as $key => $price) $defaults[$key] = max(0, (int)($saved[$key] ?? $price));
+        }
+    } catch (Throwable $e) {
+        error_log('Template prices fallback: '.$e->getMessage());
+    }
+    return $defaults;
+}
+function default_template_category_prices(): array {
     return [
         'animation' => 75000,
         'minimalist' => 90000,
@@ -72,6 +93,11 @@ function template_category_prices(): array {
 }
 function format_rupiah(int $amount): string {
     return 'Rp'.number_format($amount, 0, ',', '.');
+}
+function format_datetime_label(string $value): string {
+    if ($value === '') return '';
+    $time = strtotime($value);
+    return $time ? date('d M Y H:i', $time) : $value;
 }
 function template_category_price(string $categoryKey): int {
     return template_category_prices()[$categoryKey] ?? 0;
@@ -136,6 +162,41 @@ function templates_by_category(): array {
     }
     return $groups;
 }
+function app_setting(string $key, $default = null) {
+    $stmt = db()->prepare('SELECT value FROM app_settings WHERE setting_key=?');
+    $stmt->execute([$key]);
+    $value = $stmt->fetchColumn();
+    if ($value === false) return $default;
+    $decoded = json_decode((string)$value, true);
+    return json_last_error() === JSON_ERROR_NONE ? $decoded : $value;
+}
+function save_app_setting(string $key, $value): void {
+    $payload = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $now = date('c');
+    if ((cfg()['db_driver'] ?? 'sqlite') === 'mysql') {
+        $stmt = db()->prepare('INSERT INTO app_settings (setting_key,value,updated_at) VALUES (?,?,?) ON DUPLICATE KEY UPDATE value=VALUES(value), updated_at=VALUES(updated_at)');
+    } else {
+        $stmt = db()->prepare('INSERT INTO app_settings (setting_key,value,updated_at) VALUES (?,?,?) ON CONFLICT(setting_key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at');
+    }
+    $stmt->execute([$key, $payload, $now]);
+}
+function template_discounts(): array {
+    $saved = app_setting('template_discounts', []);
+    return is_array($saved) ? $saved : [];
+}
+function active_template_discounts(?int $now = null): array {
+    $now ??= time();
+    $active = [];
+    foreach (template_discounts() as $key => $discount) {
+        if (!is_array($discount)) continue;
+        $price = (int)($discount['price'] ?? 0);
+        $until = trim((string)($discount['until'] ?? ''));
+        $untilTime = $until !== '' ? strtotime($until) : false;
+        if ($price <= 0 || !$untilTime || $untilTime < $now) continue;
+        $active[$key] = ['price' => $price, 'until' => date('Y-m-d\TH:i', $untilTime)];
+    }
+    return $active;
+}
 function normalize_template_key(string $key): string {
     if (preg_match('/^special-(\d+)$/', $key, $m)) return 'minimalist-'.$m[1];
     if (preg_match('/^animasi-(\d+)$/', $key, $m)) return 'animation-'.$m[1];
@@ -163,6 +224,11 @@ function db(): PDO {
 function init_db(PDO $pdo, string $driver): void {
     static $done = false; if ($done) return; $done = true;
     if ($driver === 'mysql') {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS app_settings (
+            setting_key VARCHAR(120) PRIMARY KEY,
+            value LONGTEXT NOT NULL,
+            updated_at VARCHAR(40) NOT NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
         $pdo->exec("CREATE TABLE IF NOT EXISTS invitations (
             slug VARCHAR(191) PRIMARY KEY,
             title VARCHAR(255) NOT NULL,
@@ -189,6 +255,11 @@ function init_db(PDO $pdo, string $driver): void {
             CONSTRAINT fk_guests_invitation FOREIGN KEY(invitation_slug) REFERENCES invitations(slug) ON DELETE CASCADE
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
     } else {
+        $pdo->exec("CREATE TABLE IF NOT EXISTS app_settings (
+            setting_key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )");
         $pdo->exec("CREATE TABLE IF NOT EXISTS invitations (
             slug TEXT PRIMARY KEY,
             title TEXT NOT NULL,

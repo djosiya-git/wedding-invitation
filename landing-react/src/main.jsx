@@ -240,10 +240,18 @@ function TemplateCard({ template, index }) {
   return (
     <article className="templateCard" style={{ '--delay': `${index * 70}ms` }}>
       <a className="templateThumb" target="_blank" rel="noopener noreferrer" href={template.preview_url}>
+        {template.has_discount && <span className="discountRibbon">Promo</span>}
         <img src={template.thumbnail_url} alt={template.name} loading="lazy" />
       </a>
       <div className="templateInfo">
-        <div><b>{template.name}</b><span>{template.price_label}</span></div>
+        <div>
+          <b>{template.name}</b>
+          <span className={template.has_discount ? 'salePrice' : ''}>
+            {template.has_discount && <em>{template.base_price_label}</em>}
+            {template.price_label}
+          </span>
+          {template.has_discount && <small>{template.discount_label}</small>}
+        </div>
         <a target="_blank" rel="noopener noreferrer" href={template.preview_url}>Buka Preview</a>
       </div>
     </article>

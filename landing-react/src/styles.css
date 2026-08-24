@@ -504,6 +504,8 @@ a {
 .templatePanel h3 span,
 .templateInfo span {
   display: inline-flex;
+  align-items: center;
+  gap: 6px;
   width: max-content;
   border-radius: 999px;
   background: rgba(22, 136, 199, .12);
@@ -511,6 +513,24 @@ a {
   font-size: 12px;
   font-weight: 900;
   padding: 4px 9px;
+}
+
+.templateInfo span.salePrice {
+  background: #ffeff2;
+  color: #c52b45;
+}
+
+.templateInfo span em {
+  color: #7b8791;
+  font-style: normal;
+  font-weight: 800;
+  text-decoration: line-through;
+}
+
+.templateInfo small {
+  color: #c52b45;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .templateGrid {
@@ -554,6 +574,21 @@ a {
   transform: translateY(-8px);
   opacity: 0;
   transition: opacity .24s ease, transform .24s ease;
+}
+
+.discountRibbon {
+  position: absolute;
+  z-index: 3;
+  right: 12px;
+  top: 12px;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: #ffeff2;
+  color: #c52b45;
+  border: 1px solid rgba(197, 43, 69, .18);
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(197, 43, 69, .14);
 }
 
 .templateThumb::after {
