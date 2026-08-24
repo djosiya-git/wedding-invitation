@@ -129,7 +129,7 @@ function App() {
       <section id="fitur" className="band cream">
         <div className="wrap features">
           <Feature number="01" title="Nama tamu personal" text="Setiap tamu bisa menerima link dengan sapaan khusus." />
-          <Feature number="02" title="Template per kategori" text="Pilih gaya Animation, Minimalist, Luxury, atau Vintage sesuai konsep acara." />
+          <Feature number="02" title="Template per kategori" text="Pilih gaya Animation, Minimalist, Luxury, Graduation, atau Vintage sesuai konsep acara." />
           <Feature number="03" title="Kelola tamu" text="Tambah manual, import CSV, export data, dan salin link personal." />
           <Feature number="04" title="Preview cepat" text="Landing hanya memuat thumbnail real, bukan iframe template berat." />
         </div>

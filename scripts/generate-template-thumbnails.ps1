@@ -2,7 +2,8 @@ param(
     [int]$Port = 8199,
     [int]$DebugPort = 9223,
     [int]$Width = 564,
-    [int]$Height = 900
+    [int]$Height = 900,
+    [switch]$OnlyMissing
 )
 
 $ErrorActionPreference = 'Stop'
@@ -127,8 +128,11 @@ try {
     } | Out-Null
 
     $templates = Get-ChildItem -Path (Join-Path $root 'templates') -Filter '*.html' |
-        Where-Object { $_.BaseName -match '^[a-z]+-\d+$' } |
+        Where-Object { $_.BaseName -match '^[a-z]+(-[a-z]+)*-\d+$' } |
         Sort-Object BaseName
+    if ($OnlyMissing) {
+        $templates = @($templates | Where-Object { -not (Test-Path (Join-Path $thumbDir "$($_.BaseName).png")) })
+    }
 
     foreach ($template in $templates) {
         $key = $template.BaseName

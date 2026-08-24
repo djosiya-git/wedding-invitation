@@ -36,15 +36,16 @@ function templates(): array {
     $discounts = active_template_discounts();
     foreach (glob(__DIR__.'/templates/*.html') ?: [] as $path) {
         $key = basename($path, '.html');
-        if (!preg_match('/^([a-z]+)-(\d+)$/', $key, $m)) continue;
+        if (!preg_match('/^([a-z]+)(?:-[a-z]+)*-(\d+)$/', $key, $m)) continue;
         $prefix = $m[1];
         $number = $m[2];
         $category = $categories[$prefix] ?? ucfirst($prefix);
+        $nameBase = ucwords(str_replace('-', ' ', preg_replace('/-\d+$/', '', $key)));
         $basePrice = template_category_price($prefix);
         $discount = $discounts[$key] ?? null;
         $finalPrice = $discount ? max(0, (int)$discount['price']) : $basePrice;
         $out[$key] = [
-            'name' => $category.' '.$number,
+            'name' => $nameBase.' '.$number,
             'file' => basename($path),
             'category' => $category,
             'category_key' => $prefix,
@@ -68,6 +69,7 @@ function template_categories(): array {
         'animation' => 'Animation',
         'minimalist' => 'Minimalist',
         'luxury' => 'Luxury',
+        'graduation' => 'Graduation',
         'vintage' => 'Vintage',
     ];
 }
@@ -88,6 +90,7 @@ function default_template_category_prices(): array {
         'animation' => 75000,
         'minimalist' => 90000,
         'luxury' => 0,
+        'graduation' => 0,
         'vintage' => 105000,
     ];
 }

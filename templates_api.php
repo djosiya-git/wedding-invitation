@@ -18,7 +18,7 @@ foreach (templates_by_category() as $key => $group) {
             'has_discount' => $template['has_discount'],
             'discount_until' => $template['discount_until'],
             'discount_label' => $template['discount_label'],
-            'thumbnail_url' => '/admin/'.$template['thumbnail_url'],
+            'thumbnail_url' => $template['thumbnail_url'] !== '' ? '/admin/'.$template['thumbnail_url'] : '',
             'preview_url' => '/admin/template_preview.php?template='.rawurlencode($templateKey),
         ];
     }

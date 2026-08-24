@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Graduation Motion 01 - D-Webin Digital Invitation</title>
+  <meta name="description" content="Template undangan wisuda full animasi dan full motion." />
+  <style>
+    :root{
+      --bg:#0c1022;
+      --bg-2:#121936;
+      --panel:rgba(255,255,255,.09);
+      --panel-2:rgba(255,255,255,.06);
+      --stroke:rgba(255,255,255,.16);
+      --text:#f8f4ea;
+      --muted:#d9d5ca;
+      --gold:#e5c77a;
+      --gold-2:#f6e8ba;
+      --accent:#7bd3ff;
+      --success:#9df59d;
+      --danger:#ffb5b5;
+      --shadow:0 20px 60px rgba(0,0,0,.35);
+      --radius:28px;
+      --transition:700ms cubic-bezier(.22,.61,.36,1);
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(123,211,255,.16), transparent 33%),
+        radial-gradient(circle at 80% 15%, rgba(229,199,122,.16), transparent 30%),
+        linear-gradient(180deg,#0b1020 0%, #0d1530 40%, #0c1022 100%);
+      overflow-x:hidden;
+    }
+
+    h1,h2,h3,h4,p{margin:0}
+    a{text-decoration:none;color:inherit}
+    img{max-width:100%;display:block}
+    button{font:inherit}
+
+    .noise,
+    .stars,
+    .orbs,
+    .caps,
+    .ribbons {
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+    }
+    .noise{
+      opacity:.06;
+      background-image:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.7) 0 1px, transparent 1px),
+        radial-gradient(circle at 70% 60%, rgba(255,255,255,.55) 0 1px, transparent 1px),
+        radial-gradient(circle at 40% 80%, rgba(255,255,255,.45) 0 1px, transparent 1px);
+      background-size: 180px 180px;
+      animation: driftNoise 26s linear infinite;
+    }
+    @keyframes driftNoise{to{transform:translateY(-180px)}}
+
+    .stars::before,
+    .stars::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.85) 0 1.2px, transparent 1.8px),
+        radial-gradient(circle, rgba(255,255,255,.55) 0 1px, transparent 1.6px);
+      background-size: 180px 180px, 120px 120px;
+      background-position: 0 0, 60px 40px;
+      opacity:.2;
+      animation: twinkle 8s ease-in-out infinite alternate;
+    }
+    .stars::after{animation-duration:13s; opacity:.14}
+    @keyframes twinkle{from{transform:scale(1) translateY(0)}to{transform:scale(1.02) translateY(10px)}}
+
+    .orb{
+      position:absolute;
+      border-radius:50%;
+      filter: blur(12px);
+      opacity:.35;
+      mix-blend-mode:screen;
+      animation: floatOrb 14s ease-in-out infinite alternate;
+    }
+    .orb.a{width:220px;height:220px;left:-40px;top:120px;background:rgba(123,211,255,.45)}
+    .orb.b{width:180px;height:180px;right:4%;top:22%;background:rgba(229,199,122,.38);animation-duration:18s}
+    .orb.c{width:280px;height:280px;left:70%;top:65%;background:rgba(140,101,255,.18);animation-duration:20s}
+    .orb.d{width:160px;height:160px;left:8%;top:70%;background:rgba(255,189,149,.28);animation-duration:17s}
+    @keyframes floatOrb{
+      from{transform:translate3d(0,0,0) scale(1)}
+      to{transform:translate3d(10px,-30px,0) scale(1.08)}
+    }
+
+    .cap-float{
+      position:absolute;
+      font-size:28px;
+      opacity:.12;
+      animation: capMove linear infinite;
+    }
+    .cap-float:nth-child(1){left:8%; top:100%; animation-duration:16s; animation-delay:-6s}
+    .cap-float:nth-child(2){left:24%; top:110%; animation-duration:22s; animation-delay:-2s}
+    .cap-float:nth-child(3){left:48%; top:106%; animation-duration:18s; animation-delay:-10s}
+    .cap-float:nth-child(4){left:71%; top:108%; animation-duration:24s; animation-delay:-4s}
+    .cap-float:nth-child(5){left:86%; top:104%; animation-duration:20s; animation-delay:-12s}
+    @keyframes capMove{
+      from{transform:translateY(0) rotate(0deg)}
+      to{transform:translateY(-130vh) rotate(28deg)}
+    }
+
+    .ribbon{
+      position:absolute;
+      width:160px;
+      height:160px;
+      border:1px solid rgba(229,199,122,.12);
+      border-radius:30px;
+      transform:rotate(45deg);
+      animation: ribbonSpin 14s linear infinite;
+    }
+    .ribbon.r1{left:-60px;top:18%;}
+    .ribbon.r2{right:-40px;top:55%;animation-duration:18s}
+    @keyframes ribbonSpin{to{transform:rotate(405deg)}}
+
+    .cover{
+      position:fixed;
+      inset:0;
+      z-index:20;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+      background:
+        radial-gradient(circle at 30% 15%, rgba(123,211,255,.22), transparent 30%),
+        radial-gradient(circle at 70% 25%, rgba(229,199,122,.18), transparent 26%),
+        linear-gradient(135deg, rgba(6,9,20,.98), rgba(12,16,34,.97));
+      transition:opacity .85s ease, visibility .85s ease;
+    }
+    .cover.hidden{opacity:0; visibility:hidden}
+    .cover-card{
+      position:relative;
+      width:min(100%, 470px);
+      padding:34px 28px 30px;
+      border-radius:32px;
+      border:1px solid rgba(255,255,255,.15);
+      background:linear-gradient(180deg, rgba(255,255,255,.11), rgba(255,255,255,.05));
+      backdrop-filter: blur(18px);
+      box-shadow:var(--shadow);
+      text-align:center;
+      overflow:hidden;
+    }
+    .cover-card::before,
+    .cover-card::after{
+      content:"";
+      position:absolute;
+      border-radius:50%;
+      filter: blur(10px);
+      opacity:.4;
+    }
+    .cover-card::before{width:160px;height:160px;left:-60px;top:-50px;background:rgba(123,211,255,.20);animation:pulseBlob 5s ease-in-out infinite}
+    .cover-card::after{width:140px;height:140px;right:-40px;bottom:-40px;background:rgba(229,199,122,.18);animation:pulseBlob 6s ease-in-out infinite reverse}
+    @keyframes pulseBlob{50%{transform:scale(1.08) translateY(12px)}}
+
+    .mini-badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 16px;
+      border-radius:999px;
+      border:1px solid rgba(229,199,122,.28);
+      background:rgba(229,199,122,.08);
+      font-size:12px;
+      letter-spacing:.24em;
+      text-transform:uppercase;
+      color:var(--gold-2);
+      margin-bottom:18px;
+    }
+    .cover-title{
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: clamp(38px, 9vw, 64px);
+      line-height:.95;
+      margin-bottom:12px;
+      color:#fff8e9;
+      text-shadow:0 4px 24px rgba(229,199,122,.12);
+    }
+    .cover-sub{font-size:15px;line-height:1.7;color:var(--muted);margin-bottom:22px}
+    .guest-wrap{
+      padding:14px 16px;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.06);
+      margin:0 auto 22px;
+      width:min(100%, 320px);
+    }
+    .guest-label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.64);margin-bottom:7px}
+    .guest-name{font-size:24px;font-weight:700;color:#fff}
+    .open-btn,
+    .cta-btn,
+    .ghost-btn{
+      border:none;
+      cursor:pointer;
+      border-radius:999px;
+      transition:transform .25s ease, filter .25s ease, background .25s ease;
+    }
+    .open-btn{
+      width:100%;
+      padding:16px 22px;
+      color:#111522;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      background:linear-gradient(135deg,var(--gold-2),var(--gold));
+      box-shadow:0 14px 30px rgba(229,199,122,.32);
+    }
+    .open-btn:hover,.cta-btn:hover,.ghost-btn:hover{transform:translateY(-2px);filter:brightness(1.03)}
+    .cover-note{font-size:13px;color:rgba(255,255,255,.64);margin-top:14px}
+
+    .music-pill{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      z-index:8;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      background:rgba(7,12,26,.76);
+      backdrop-filter:blur(12px);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:var(--shadow);
+      font-size:13px;
+      color:var(--gold-2);
+    }
+
+    .main{position:relative; z-index:1; opacity:0; transform:translateY(25px); transition:opacity .9s ease, transform .9s ease}
+    .main.ready{opacity:1; transform:none}
+
+    .section{
+      width:min(100% - 28px, 760px);
+      margin:0 auto 22px;
+      position:relative;
+    }
+
+    .hero{
+      min-height:100svh;
+      display:flex;
+      align-items:center;
+      padding:30px 0 50px;
+    }
+    .hero-card{
+      position:relative;
+      width:100%;
+      overflow:hidden;
+      border-radius:36px;
+      border:1px solid rgba(255,255,255,.14);
+      background:
+        linear-gradient(160deg, rgba(255,255,255,.10), rgba(255,255,255,.04)),
+        linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.06));
+      backdrop-filter: blur(18px);
+      box-shadow:var(--shadow);
+      padding:26px 22px 28px;
+    }
+    .hero-card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background:conic-gradient(from 180deg at 50% 50%, rgba(229,199,122,.32), rgba(123,211,255,.18), transparent 48%, rgba(229,199,122,.24));
+      filter:blur(28px);
+      opacity:.22;
+      animation: haloSpin 12s linear infinite;
+      z-index:0;
+    }
+    @keyframes haloSpin{to{transform:rotate(360deg)}}
+    .hero-inner{position:relative;z-index:1}
+    .hero-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:26px;
+    }
+    .badge{
+      padding:8px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.05);
+      color:var(--gold-2);
+      font-size:12px;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+    .pulse-dot{
+      width:10px;height:10px;border-radius:50%;background:var(--success);position:relative;display:inline-block;margin-right:8px
+    }
+    .pulse-dot::after{
+      content:"";position:absolute;inset:0;border-radius:50%;background:rgba(157,245,157,.55);animation:pulseDot 1.8s ease-out infinite
+    }
+    @keyframes pulseDot{from{transform:scale(1);opacity:1}to{transform:scale(3);opacity:0}}
+
+    .hero-grid{display:grid; gap:26px}
+    .hero-copy{ text-align:center; padding:12px 0 0}
+    .hero-kicker{font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+    .hero-title{
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(48px, 13vw, 92px);
+      line-height:.92;
+      color:#fff7e6;
+      text-shadow:0 10px 30px rgba(0,0,0,.2);
+      margin-bottom:12px;
+    }
+    .hero-name{font-size: clamp(24px, 6vw, 38px); font-weight:800; line-height:1.15; margin-bottom:12px}
+    .hero-desc{font-size:15px;line-height:1.8;color:var(--muted);max-width:520px;margin:0 auto 20px}
+
+    .date-row{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom:22px;
+    }
+    .date-chip{
+      padding:12px 16px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.1);
+      background:rgba(255,255,255,.06);
+      min-width:110px;
+    }
+    .date-chip strong{display:block; font-size:24px; color:#fff8ea; margin-bottom:3px}
+    .date-chip span{font-size:13px;color:rgba(255,255,255,.72)}
+
+    .action-row{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}
+    .cta-btn{
+      padding:14px 18px;
+      background:linear-gradient(135deg,var(--gold-2),var(--gold));
+      color:#161b29;
+      font-weight:800;
+      box-shadow:0 14px 30px rgba(229,199,122,.28);
+    }
+    .ghost-btn{
+      padding:14px 18px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      font-weight:700;
+    }
+
+    .ring-wrap{
+      margin:30px auto 8px;
+      width:min(100%,340px);
+      position:relative;
+      aspect-ratio:1;
+    }
+    .ring-a, .ring-b, .ring-c{
+      position:absolute; inset:0; border-radius:50%;
+      border:1px solid rgba(255,255,255,.10);
+    }
+    .ring-a{inset:0; animation:spin 18s linear infinite}
+    .ring-b{inset:24px; border-style:dashed; border-color:rgba(229,199,122,.30); animation:spinReverse 13s linear infinite}
+    .ring-c{inset:52px; border-color:rgba(123,211,255,.30); animation:spin 10s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes spinReverse{to{transform:rotate(-360deg)}}
+
+    .center-medal{
+      position:absolute; inset:74px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      background: radial-gradient(circle at 30% 20%, rgba(255,255,255,.15), rgba(255,255,255,.04));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:inset 0 0 30px rgba(255,255,255,.04), 0 20px 40px rgba(0,0,0,.25);
+      overflow:hidden;
+    }
+    .center-medal::before{
+      content:""; position:absolute; inset:0;
+      background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,.08) 50%, transparent 100%);
+      transform: translateX(-100%);
+      animation: shimmer 3.6s infinite;
+    }
+    @keyframes shimmer{to{transform:translateX(100%)}}
+    .center-medal .cap-icon{font-size:56px; margin-bottom:8px; filter:drop-shadow(0 8px 16px rgba(0,0,0,.35)); animation:bob 3s ease-in-out infinite}
+    @keyframes bob{50%{transform:translateY(-8px)}}
+    .center-medal .label{font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--gold); margin-bottom:6px}
+    .center-medal .year{font-size:34px; font-weight:900; color:#fffaf0}
+
+    .panel{
+      position:relative;
+      overflow:hidden;
+      border-radius:30px;
+      padding:26px 20px;
+      background:linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(14px);
+    }
+    .panel::after{
+      content:"";
+      position:absolute;
+      inset:auto -50px -60px auto;
+      width:160px;height:160px;
+      border-radius:50%;
+      background:rgba(123,211,255,.08);
+      filter:blur(10px);
+    }
+    .section-head{text-align:center;margin-bottom:22px}
+    .section-kicker{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+    .section-title{font-family:Georgia,"Times New Roman",serif;font-size:clamp(30px,7vw,48px);line-height:1;color:#fff8eb;margin-bottom:10px}
+    .section-desc{font-size:15px;line-height:1.8;color:var(--muted)}
+
+    .count-grid,
+    .stats-grid,
+    .gallery-grid,
+    .info-grid,
+    .schedule-grid,
+    .rsvp-grid,
+    .notes-grid,
+    .gift-grid{
+      display:grid;
+      gap:14px;
+    }
+    .count-grid{grid-template-columns:repeat(4,1fr)}
+    .count-box,
+    .info-card,
+    .gallery-card,
+    .schedule-card,
+    .rsvp-card,
+    .notes-card,
+    .gift-card,
+    .stat-card{
+      position:relative;
+      overflow:hidden;
+      border-radius:24px;
+      padding:18px 14px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.05);
+      text-align:center;
+    }
+    .count-num{font-size:34px;font-weight:900;color:#fff8ea;margin-bottom:4px}
+    .count-label{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.68)}
+
+    .schedule-card{text-align:left;padding:20px}
+    .schedule-num{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+    .schedule-title{font-size:24px;font-weight:800;margin-bottom:10px}
+    .schedule-meta{display:grid;gap:10px;font-size:14px;color:var(--muted);line-height:1.6}
+    .schedule-meta div{
+      display:flex; gap:10px; align-items:flex-start;
+      padding:10px 12px; border-radius:16px; background:rgba(255,255,255,.04)
+    }
+    .schedule-meta strong{color:#fff}
+
+    .timeline{display:grid; gap:16px}
+    .timeline-item{
+      position:relative;
+      padding:18px 18px 18px 58px;
+      border-radius:24px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      overflow:hidden;
+    }
+    .timeline-item::before{
+      content:"";
+      position:absolute;
+      left:26px; top:0; bottom:-16px;
+      width:2px;
+      background:linear-gradient(180deg, rgba(229,199,122,.75), rgba(123,211,255,.14));
+    }
+    .timeline-item:last-child::before{bottom:40px}
+    .timeline-dot{
+      position:absolute; left:18px; top:22px;
+      width:18px;height:18px;border-radius:50%;
+      background:linear-gradient(135deg,var(--gold-2),var(--gold));
+      box-shadow:0 0 0 5px rgba(229,199,122,.16);
+    }
+    .timeline-year{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+    .timeline-title{font-size:22px;font-weight:800;margin-bottom:8px}
+    .timeline-text{font-size:14px;line-height:1.8;color:var(--muted)}
+
+    .gallery-grid{grid-template-columns:repeat(2,1fr)}
+    .gallery-card{padding:0; aspect-ratio: 3 / 4; display:flex; align-items:flex-end; justify-content:flex-start; background-size:cover; background-position:center; isolation:isolate}
+    .gallery-card::before{
+      content:""; position:absolute; inset:0;
+      background:linear-gradient(180deg, rgba(0,0,0,.04), rgba(0,0,0,.56)); z-index:0
+    }
+    .gallery-card span{position:relative; z-index:1; padding:14px; font-size:15px; font-weight:700}
+    .gallery-1{background-image:linear-gradient(135deg, rgba(229,199,122,.32), rgba(123,211,255,.18)), url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=900&q=80')}
+    .gallery-2{background-image:linear-gradient(135deg, rgba(123,211,255,.22), rgba(229,199,122,.14)), url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80')}
+    .gallery-3{background-image:linear-gradient(135deg, rgba(229,199,122,.22), rgba(255,255,255,.06)), url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=80')}
+    .gallery-4{background-image:linear-gradient(135deg, rgba(255,255,255,.08), rgba(123,211,255,.20)), url('https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=900&q=80')}
+
+    .pass-panel{
+      display:grid;
+      gap:20px;
+    }
+    .pass-card{
+      position:relative;
+      overflow:hidden;
+      padding:24px 18px;
+      border-radius:28px;
+      background:
+        linear-gradient(135deg, rgba(229,199,122,.18), rgba(123,211,255,.12)),
+        rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.16);
+    }
+    .pass-card::before,
+    .pass-card::after{
+      content:"";
+      position:absolute;
+      width:34px;height:34px;border-radius:50%;
+      background:var(--bg);
+      top:50%; transform:translateY(-50%);
+      box-shadow:0 0 0 1px rgba(255,255,255,.10);
+    }
+    .pass-card::before{left:-17px}
+    .pass-card::after{right:-17px}
+    .pass-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}
+    .pass-brand{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:#fff8ea}
+    .pass-code{font-size:13px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.12)}
+    .pass-guest{font-size:28px;font-weight:900;line-height:1.15;margin-bottom:10px}
+    .pass-meta{font-size:14px;line-height:1.8;color:var(--muted);margin-bottom:18px}
+    .qr-box{
+      width:220px;height:220px;margin:0 auto 16px;
+      padding:12px;background:#fff;border-radius:22px;
+      box-shadow:0 16px 38px rgba(0,0,0,.24);
+      animation: qrPulse 3.4s ease-in-out infinite;
+    }
+    @keyframes qrPulse{50%{transform:translateY(-4px) scale(1.015)}}
+    .qr-box img{width:100%;height:100%;object-fit:contain;border-radius:12px}
+    .pass-foot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px;color:rgba(255,255,255,.84)}
+
+    .info-grid{grid-template-columns:repeat(2,1fr)}
+    .info-card{text-align:left}
+    .info-card strong{display:block;font-size:14px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
+    .info-card p{font-size:15px;line-height:1.7;color:var(--muted)}
+
+    .stats-grid{grid-template-columns:repeat(3,1fr)}
+    .stat-card strong{display:block;font-size:34px;color:#fff8ea;margin-bottom:5px}
+    .stat-card span{font-size:13px;color:rgba(255,255,255,.7)}
+
+    .rsvp-grid{grid-template-columns:repeat(2,1fr)}
+    .rsvp-card{text-align:left}
+    .rsvp-label{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:10px}
+    .rsvp-value{font-size:16px;line-height:1.7;color:var(--muted)}
+
+    .notes-grid{grid-template-columns:repeat(2,1fr)}
+    .notes-card{text-align:left;padding:18px}
+    .notes-card strong{display:block;margin-bottom:8px;color:#fff8ea}
+    .notes-card p{font-size:14px;line-height:1.7;color:var(--muted)}
+
+    .gift-grid{grid-template-columns:repeat(2,1fr)}
+    .gift-card{text-align:left;padding:20px}
+    .gift-chip{display:inline-block;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);margin-bottom:12px}
+    .gift-card h4{font-size:22px;margin-bottom:10px}
+    .gift-card p{font-size:14px;line-height:1.75;color:var(--muted)}
+
+    .footer{
+      text-align:center;
+      padding:36px 0 80px;
+      color:rgba(255,255,255,.68);
+      font-size:14px;
+    }
+
+    .reveal{opacity:0; transform:translateY(24px) scale(.985); transition:var(--transition)}
+    .reveal.show{opacity:1; transform:none}
+
+    .floating-nav{
+      position:fixed;
+      left:50%; bottom:18px; transform:translateX(-50%);
+      z-index:9;
+      width:min(calc(100% - 20px),560px);
+      padding:10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(7,12,26,.74);
+      backdrop-filter:blur(16px);
+      box-shadow:var(--shadow);
+      display:grid; grid-template-columns: repeat(5,1fr); gap:8px;
+    }
+    .floating-nav a{
+      font-size:11px; letter-spacing:.05em; text-transform:uppercase;
+      padding:12px 6px; border-radius:999px; text-align:center;
+      color:rgba(255,255,255,.72); transition:.25s ease;
+    }
+    .floating-nav a:hover{background:rgba(255,255,255,.08); color:#fff}
+
+    .modal{
+      position:fixed; inset:0; z-index:30; display:none; place-items:center;
+      background:rgba(5,9,20,.82); backdrop-filter:blur(8px);
+      padding:24px;
+    }
+    .modal.open{display:grid}
+    .modal-card{
+      width:min(100%, 440px);
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:28px;
+      padding:22px;
+      box-shadow:var(--shadow);
+      text-align:center;
+    }
+    .modal-card h3{font-family:Georgia,"Times New Roman",serif;font-size:34px;margin-bottom:10px;color:#fff8ea}
+    .modal-card p{font-size:14px;line-height:1.8;color:var(--muted);margin-bottom:16px}
+    .modal-close{
+      margin-top:16px; padding:12px 16px; border:none; border-radius:999px;
+      background:linear-gradient(135deg,var(--gold-2),var(--gold)); color:#161b29; font-weight:800; cursor:pointer;
+    }
+
+    @media (max-width: 640px){
+      .cover-card{padding:30px 20px 24px}
+      .hero-card{padding:22px 16px 24px;border-radius:30px}
+      .panel{padding:22px 16px}
+      .count-grid,
+      .stats-grid,
+      .rsvp-grid,
+      .notes-grid,
+      .gift-grid,
+      .gallery-grid,
+      .info-grid{grid-template-columns:repeat(2,1fr)}
+      .count-num{font-size:28px}
+      .date-row{gap:10px}
+      .date-chip{min-width:94px;padding:10px 12px}
+      .qr-box{width:100%; max-width:230px; height:auto; aspect-ratio:1}
+      .floating-nav{grid-template-columns: repeat(5,1fr); width:min(calc(100% - 16px), 530px); bottom:10px}
+      .floating-nav a{font-size:10px; padding:11px 4px}
+      .music-pill{font-size:12px; bottom:86px; right:10px}
+    }
+
+    @media (max-width: 440px){
+      .count-grid{grid-template-columns:repeat(4,1fr); gap:10px}
+      .count-box{padding:14px 6px}
+      .gallery-grid,
+      .schedule-grid,
+      .rsvp-grid,
+      .notes-grid,
+      .gift-grid,
+      .info-grid,
+      .stats-grid{grid-template-columns:1fr}
+      .pass-guest{font-size:24px}
+      .hero-title{font-size:44px}
+      .hero-name{font-size:24px}
+    }
+  </style>
+</head>
+<body>
+  <div class="noise"></div>
+  <div class="stars"></div>
+  <div class="orbs">
+    <div class="orb a"></div>
+    <div class="orb b"></div>
+    <div class="orb c"></div>
+    <div class="orb d"></div>
+  </div>
+  <div class="caps">
+    <div class="cap-float">🎓</div>
+    <div class="cap-float">✦</div>
+    <div class="cap-float">🎓</div>
+    <div class="cap-float">✦</div>
+    <div class="cap-float">🎓</div>
+  </div>
+  <div class="ribbons">
+    <div class="ribbon r1"></div>
+    <div class="ribbon r2"></div>
+  </div>
+
+  <div class="cover" id="cover">
+    <div class="cover-card">
+      <div class="mini-badge">Graduation Invitation</div>
+      <div class="cover-title">Wisuda</div>
+      <p class="cover-sub">Kami dengan bangga mengundang Anda untuk hadir pada momen kelulusan dan perayaan wisuda yang penuh syukur, haru, dan kebahagiaan.</p>
+      <div class="guest-wrap">
+        <div class="guest-label">Kepada Yth.</div>
+        <div class="guest-name" id="guestNameCover">Nama Tamu</div>
+      </div>
+      <button class="open-btn" id="openInvitation">Buka Undangan</button>
+      <div class="cover-note">Template undangan wisuda full motion • D-Webin Digital</div>
+    </div>
+  </div>
+
+  <div class="music-pill">✨ Full Motion Graduation Template</div>
+
+  <main class="main" id="mainContent">
+    <section class="section hero" id="home">
+      <div class="hero-card reveal show">
+        <div class="hero-inner">
+          <div class="hero-top">
+            <div class="badge">D-Webin Graduation Series</div>
+            <div class="badge"><span class="pulse-dot"></span> Live Invitation</div>
+          </div>
+
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <div class="hero-kicker">Undangan Resmi Wisuda</div>
+              <div class="hero-title">Class of 2026</div>
+              <div class="hero-name">Wisuda <span id="graduateNameHero">Nama Wisudawan</span></div>
+              <p class="hero-desc">
+                Dengan penuh rasa syukur, kami mengundang <strong id="guestNameHero">Nama Tamu</strong> untuk hadir dalam momen kelulusan dan perayaan wisuda yang akan menjadi kenangan indah bagi kami.
+              </p>
+
+              <div class="date-row">
+                <div class="date-chip"><strong>Sabtu</strong><span>Hari</span></div>
+                <div class="date-chip"><strong>12</strong><span>Tanggal</span></div>
+                <div class="date-chip"><strong>Sep 2026</strong><span>Bulan / Tahun</span></div>
+                <div class="date-chip"><strong>08.00</strong><span>WIB</span></div>
+              </div>
+
+              <div class="action-row">
+                <a href="#event" class="cta-btn">Lihat Detail Acara</a>
+                <button class="ghost-btn" id="showQrBtn">Tampilkan QR Pass</button>
+              </div>
+            </div>
+
+            <div class="ring-wrap">
+              <div class="ring-a"></div>
+              <div class="ring-b"></div>
+              <div class="ring-c"></div>
+              <div class="center-medal">
+                <div class="cap-icon">🎓</div>
+                <div class="label">Graduation</div>
+                <div class="year">2026</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="countdown">
+      <div class="panel reveal">
+        <div class="section-head">
+          <div class="section-kicker">Countdown</div>
+          <h2 class="section-title">Menuju Hari Spesial</h2>
+          <p class="section-desc">Hitung mundur menuju acara wisuda dan momen perayaan kelulusan.</p>
+        </div>
+        <div class="count-grid">
+          <div class="count-box"><div class="count-num" id="days">0</div><div class="count-label">Hari</div></div>
+          <div class="count-box"><div class="count-num" id="hours">0</div><div class="count-label">Jam</div></div>
+          <div class="count-box"><div class="count-num" id="minutes">0</div><div class="count-label">Menit</div></div>
+          <div class="count-box"><div class="count-num" id="seconds">0</div><div class="count-label">Detik</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="event">
+      <div class="panel reveal">
+        <div class="section-head">
+          <div class="section-kicker">Event Detail</div>
+          <h2 class="section-title">Rangkaian Acara</h2>
+          <p class="section-desc">Berikut jadwal lengkap acara wisuda agar para tamu dapat hadir tepat waktu.</p>
+        </div>
+        <div class="schedule-grid">
+          <div class="schedule-card reveal">
+            <div class="schedule-num">Sesi 01</div>
+            <div class="schedule-title">Registrasi Tamu</div>
+            <div class="schedule-meta">
+              <div>🕗 <span><strong>07.00 – 08.00 WIB</strong><br>Scan QR pada buku tamu online dan verifikasi kehadiran.</span></div>
+              <div>📍 <span><strong>Lobby Grand Hall</strong><br>Universitas D-Webin Nusantara, Tangerang.</span></div>
+            </div>
+          </div>
+          <div class="schedule-card reveal">
+            <div class="schedule-num">Sesi 02</div>
+            <div class="schedule-title">Prosesi Wisuda</div>
+            <div class="schedule-meta">
+              <div>🎓 <span><strong>08.00 – 11.00 WIB</strong><br>Prosesi pembukaan, sambutan, pemanggilan wisudawan, dan penyerahan ijazah.</span></div>
+              <div>🏛️ <span><strong>Ballroom Utama</strong><br>Tempat duduk tamu mengikuti area undangan.</span></div>
+            </div>
+          </div>
+          <div class="schedule-card reveal">
+            <div class="schedule-num">Sesi 03</div>
+            <div class="schedule-title">Sesi Foto & Ramah Tamah</div>
+            <div class="schedule-meta">
+              <div>📸 <span><strong>11.00 – 13.00 WIB</strong><br>Sesi dokumentasi bersama keluarga, teman, dan dosen.</span></div>
+              <div>🍽️ <span><strong>Garden Hall</strong><br>Disediakan jamuan ringan dan area foto utama.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="story">
+      <div class="panel reveal">
+        <div class="section-head">
+          <div class="section-kicker">Journey</div>
+          <h2 class="section-title">Perjalanan Kelulusan</h2>
+          <p class="section-desc">Sedikit cerita perjalanan dari awal kuliah hingga tiba di hari wisuda.</p>
+        </div>
+        <div class="timeline">
+          <div class="timeline-item reveal">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">Awal Perjalanan</div>
+            <div class="timeline-title">Menjadi Mahasiswa</div>
+            <div class="timeline-text">Langkah awal dimulai dengan semangat belajar, beradaptasi di lingkungan baru, dan membangun mimpi untuk masa depan yang lebih baik.</div>
+          </div>
+          <div class="timeline-item reveal">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">Proses Bertumbuh</div>
+            <div class="timeline-title">Belajar, Organisasi, dan Tantangan</div>
+            <div class="timeline-text">Berbagai tugas, ujian, proyek, dan pengalaman organisasi membentuk karakter, memperkuat mental, serta menghadirkan banyak kenangan berharga.</div>
+          </div>
+          <div class="timeline-item reveal">
+            <div class="timeline-dot"></div>
+            <div class="timeline-year">Puncak Momen</div>
+            <div class="timeline-title">Hari Kelulusan</div>
+            <div class="timeline-text">Kini tibalah saat yang dinanti. Hari wisuda menjadi simbol perjuangan, rasa syukur, dan awal babak baru untuk menggapai impian berikutnya.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="gallery">
+      <div class="panel reveal">
+        <div class="section-head">
+          <div class="section-kicker">Gallery</div>
+          <h2 class="section-title">Galeri Kenangan</h2>
+          <p class="section-desc">Contoh section foto untuk menampilkan momen kuliah, sidang, hingga wisuda.</p>
+        </div>
+        <div class="gallery-grid">
+          <div class="gallery-card gallery-1 reveal"><span>Momen Kampus</span></div>
+          <div class="gallery-card gallery-2 reveal"><span>Perjalanan Akademik</span></div>
+          <div class="gallery-card gallery-3 reveal"><span>Hari Kelulusan</span></div>
+          <div class="gallery-card gallery-4 reveal"><span>Perayaan Bersama</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="pass">
+      <div class="panel reveal">
+        <div class="section-head">
+          <div class="section-kicker">Invitation Pass</div>
+          <h2 class="section-title">QR Check-In Tamu</h2>
+          <p class="section-desc">Tunjukkan QR ini saat datang agar panitia dapat memindai ke buku tamu online.</p>
+        </div>
+        <div class="pass-panel">
+          <div class="pass-card reveal">
+            <div class="pass-top">
+              <div class="pass-brand">Graduation Guest Pass</div>
+              <div class="pass-code" id="inviteCodeTop">GRD26-A8F92K</div>
+            </div>
+            <div class="pass-guest" id="guestNamePass">Nama Tamu</div>
+            <div class="pass-meta">
+              Undangan ini berlaku sebagai akses check-in tamu untuk menghadiri acara wisuda <strong id="graduateNamePass">Nama Wisudawan</strong>.<br>
+              Harap simpan atau screenshot QR ini untuk mempercepat proses registrasi.
+            </div>
+            <div class="qr-box">
+              <img id="qrImage" alt="QR Invitation Pass" />
+            </div>
+            <div class="pass-foot">
+              <span>🎟️ Kapasitas: 2 Tamu</span>
+              <span>📌 Status: Valid</span>
+              <span>🕘 Gate Open: 07.00 WIB</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="info">
+      <div class="panel reveal">
+        <div class="section-head">
+          <div class="section-kicker">Informasi</div>
+          <h2 class="section-title">Panduan Kehadiran</h2>
+          <p class="section-desc">Beberapa informasi penting bagi tamu yang hadir pada acara wisuda.</p>
+        </div>
+        <div class="info-grid">
+          <div class="info-card reveal">
+            <strong>Dress Code</strong>
+            <p>Pakaian formal, rapi, dan sopan. Disarankan menggunakan warna netral agar serasi pada sesi dokumentasi.</p>
+          </div>
+          <div class="info-card reveal">
+            <strong>Lokasi</strong>
+            <p>Grand Hall Universitas D-Webin Nusantara, Jl. Contoh Akademik No. 26, Tangerang.</p>
+          </div>
+          <div class="info-card reveal">
+            <strong>Check-In</strong>
+            <p>Silakan scan QR Invitation Pass di meja registrasi untuk mengisi buku tamu online secara otomatis.</p>
+          </div>
+          <div class="info-card reveal">
+            <strong>Kontak Panitia</strong>
+            <p>Admin Event: 08xx-xxxx-xxxx • Email: graduation@dwebin.id</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="stats">
+      <div class="panel reveal">
+        <div class="section-head">
+          <div class="section-kicker">Attendance</div>
+          <h2 class="section-title">Statistik Tamu</h2>
+          <p class="section-desc">Section ini bisa dipakai kalau nanti datanya diambil dari sistem RSVP / admin panel.</p>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card reveal"><strong>500+</strong><span>Total Undangan</span></div>
+          <div class="stat-card reveal"><strong>423</strong><span>Konfirmasi Hadir</span></div>
+          <div class="stat-card reveal"><strong>318</strong><span>Sudah Check-In</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="rsvp">
+      <div class="panel reveal">
+        <div class="section-head">
+          <div class="section-kicker">RSVP</div>
+          <h2 class="section-title">Konfirmasi Kehadiran</h2>
+          <p class="section-desc">Contoh tampilan block RSVP yang nantinya bisa dihubungkan ke database / API undangan.</p>
+        </div>
+        <div class="rsvp-grid">
+          <div class="rsvp-card reveal">
+            <div class="rsvp-label">Status Kehadiran</div>
+            <div class="rsvp-value">✅ Hadir / ❌ Tidak Hadir</div>
+          </div>
+          <div class="rsvp-card reveal">
+            <div class="rsvp-label">Jumlah Tamu</div>
+            <div class="rsvp-value">Maksimal 2 orang per undangan</div>
+          </div>
+          <div class="rsvp-card reveal">
+            <div class="rsvp-label">Ucapan</div>
+            <div class="rsvp-value">Selamat atas wisudanya, semoga sukses dan lancar ke depannya.</div>
+          </div>
+          <div class="rsvp-card reveal">
+            <div class="rsvp-label">Catatan</div>
+            <div class="rsvp-value">Tamu diharapkan hadir minimal 30 menit sebelum acara dimulai.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="notes">
+      <div class="panel reveal">
+        <div class="section-head">
+          <div class="section-kicker">Catatan Penting</div>
+          <h2 class="section-title">Hal yang Perlu Diperhatikan</h2>
+          <p class="section-desc">Tambahan informasi untuk menjaga kelancaran acara pada hari H.</p>
+        </div>
+        <div class="notes-grid">
+          <div class="notes-card reveal"><strong>Datang Lebih Awal</strong><p>Mohon hadir 30–45 menit sebelum acara dimulai agar proses registrasi lebih tertib.</p></div>
+          <div class="notes-card reveal"><strong>Simpan QR</strong><p>Screenshot QR Invitation Pass untuk berjaga-jaga jika sinyal internet kurang stabil saat check-in.</p></div>
+          <div class="notes-card reveal"><strong>Area Foto</strong><p>Panitia menyiapkan area dokumentasi khusus setelah prosesi wisuda selesai.</p></div>
+          <div class="notes-card reveal"><strong>Parkir</strong><p>Area parkir tamu tersedia di basement hall dan halaman gedung belakang.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="gift">
+      <div class="panel reveal">
+        <div class="section-head">
+          <div class="section-kicker">Optional Section</div>
+          <h2 class="section-title">Tambahan Fitur Template</h2>
+          <p class="section-desc">Bagian ini contoh tambahan jika nanti template wisuda ingin dibuat makin premium.</p>
+        </div>
+        <div class="gift-grid">
+          <div class="gift-card reveal">
+            <div class="gift-chip">Feature 01</div>
+            <h4>Live Streaming</h4>
+            <p>Bisa ditambah tombol live streaming YouTube / Instagram untuk tamu yang berhalangan hadir secara langsung.</p>
+          </div>
+          <div class="gift-card reveal">
+            <div class="gift-chip">Feature 02</div>
+            <h4>Souvenir / Gift</h4>
+            <p>Bisa ditambahkan informasi hadiah, bunga, atau ucapan digital apabila acara ingin dibuat lebih personal.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="section footer">
+      Dibuat sebagai contoh template <strong>Graduation Motion 01</strong> • Full animasi / full motion terinspirasi dari gaya template vintage. <br>
+      D-Webin Digital Invitation
+    </footer>
+  </main>
+
+  <nav class="floating-nav">
+    <a href="#home">Home</a>
+    <a href="#event">Acara</a>
+    <a href="#story">Story</a>
+    <a href="#pass">QR Pass</a>
+    <a href="#rsvp">RSVP</a>
+  </nav>
+
+  <div class="modal" id="qrModal">
+    <div class="modal-card">
+      <h3>QR Guest Pass</h3>
+      <p>Silakan tunjukkan QR berikut kepada panitia untuk proses scan buku tamu online.</p>
+      <div class="qr-box" style="max-width:260px;margin:0 auto;">
+        <img id="qrImageModal" alt="QR Invitation Pass" />
+      </div>
+      <div style="font-weight:800;font-size:20px;margin-top:10px" id="guestNameModal">Nama Tamu</div>
+      <div style="margin-top:8px;color:#fff8ea" id="inviteCodeModal">GRD26-A8F92K</div>
+      <button class="modal-close" id="closeModal">Tutup</button>
+    </div>
+  </div>
+
+  <script>
+    const config = {
+      graduateName: 'Djosiya Wahyudianto',
+      institution: 'Universitas D-Webin Nusantara',
+      eventDate: '2026-09-12T08:00:00+07:00',
+      defaultGuest: 'Bapak/Ibu/Saudara/i',
+      defaultCode: 'GRD26-A8F92K'
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const guestName = params.get('to') || config.defaultGuest;
+    const inviteCode = params.get('code') || config.defaultCode;
+    const graduateName = params.get('graduate') || config.graduateName;
+
+    document.getElementById('guestNameCover').textContent = guestName;
+    document.getElementById('guestNameHero').textContent = guestName;
+    document.getElementById('guestNamePass').textContent = guestName;
+    document.getElementById('guestNameModal').textContent = guestName;
+    document.getElementById('graduateNameHero').textContent = graduateName;
+    document.getElementById('graduateNamePass').textContent = graduateName;
+    document.getElementById('inviteCodeTop').textContent = inviteCode;
+    document.getElementById('inviteCodeModal').textContent = inviteCode;
+
+    const qrPayload = JSON.stringify({
+      event: 'Graduation 2026',
+      code: inviteCode,
+      guest: guestName,
+      graduate: graduateName,
+      institution: config.institution
+    });
+    const qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=420x420&data=' + encodeURIComponent(qrPayload);
+    document.getElementById('qrImage').src = qrUrl;
+    document.getElementById('qrImageModal').src = qrUrl;
+
+    const cover = document.getElementById('cover');
+    const main = document.getElementById('mainContent');
+    document.getElementById('openInvitation').addEventListener('click', () => {
+      cover.classList.add('hidden');
+      main.classList.add('ready');
+      document.body.style.overflowY = 'auto';
+    });
+    document.body.style.overflowY = 'hidden';
+
+    const targetDate = new Date(config.eventDate).getTime();
+    const pad = n => String(Math.max(0,n)).padStart(2,'0');
+    function updateCountdown(){
+      const now = Date.now();
+      const distance = targetDate - now;
+      if(distance <= 0){
+        document.getElementById('days').textContent = '00';
+        document.getElementById('hours').textContent = '00';
+        document.getElementById('minutes').textContent = '00';
+        document.getElementById('seconds').textContent = '00';
+        return;
+      }
+      const days = Math.floor(distance / (1000*60*60*24));
+      const hours = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
+      const minutes = Math.floor((distance % (1000*60*60)) / (1000*60));
+      const seconds = Math.floor((distance % (1000*60)) / 1000);
+      document.getElementById('days').textContent = pad(days);
+      document.getElementById('hours').textContent = pad(hours);
+      document.getElementById('minutes').textContent = pad(minutes);
+      document.getElementById('seconds').textContent = pad(seconds);
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    const reveals = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          entry.target.classList.add('show');
+        }
+      });
+    }, { threshold: 0.14 });
+    reveals.forEach(el => observer.observe(el));
+
+    const modal = document.getElementById('qrModal');
+    document.getElementById('showQrBtn').addEventListener('click', ()=> modal.classList.add('open'));
+    document.getElementById('closeModal').addEventListener('click', ()=> modal.classList.remove('open'));
+    modal.addEventListener('click', (e)=> { if(e.target === modal) modal.classList.remove('open'); });
+  </script>
+</body>
+</html>
