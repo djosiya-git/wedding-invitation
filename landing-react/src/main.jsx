@@ -44,6 +44,7 @@ function App() {
   const heroGroups = ['animation', 'minimalist', 'vintage']
     .map((key) => groups.find((group) => group.key === key))
     .filter(Boolean);
+  const featuredTemplates = groups.flatMap((group) => group.templates.slice(0, 2)).slice(0, 6);
 
   const visibleTemplates = useMemo(() => {
     if (!activeGroup) return [];
@@ -72,6 +73,12 @@ function App() {
       </nav>
 
       <section className="hero">
+        <div className="motionBg" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <span />
+        </div>
         <div className="heroStage" aria-hidden="true">
           {heroGroups.map((group, index) => {
             const template = group.templates[0];
@@ -103,6 +110,9 @@ function App() {
             <div><b>{groups.length || '...'}</b><span>kategori desain</span></div>
             <div><b>Unlimited</b><span>link tamu personal</span></div>
           </div>
+          <div className="heroTicker" aria-label="Kategori template">
+            {groups.map((group) => <span key={group.key}>{group.label} - {group.price_label}</span>)}
+          </div>
         </div>
       </section>
 
@@ -118,10 +128,10 @@ function App() {
 
       <section id="fitur" className="band cream">
         <div className="wrap features">
-          <Feature title="Nama tamu personal" text="Setiap tamu bisa menerima link dengan sapaan khusus." />
-          <Feature title="Template per kategori" text="Pilih gaya Animation, Minimalist, Luxury, atau Vintage sesuai konsep acara." />
-          <Feature title="Kelola tamu" text="Tambah manual, import CSV, export data, dan salin link personal." />
-          <Feature title="Preview cepat" text="Landing hanya memuat thumbnail real, bukan iframe template berat." />
+          <Feature number="01" title="Nama tamu personal" text="Setiap tamu bisa menerima link dengan sapaan khusus." />
+          <Feature number="02" title="Template per kategori" text="Pilih gaya Animation, Minimalist, Luxury, atau Vintage sesuai konsep acara." />
+          <Feature number="03" title="Kelola tamu" text="Tambah manual, import CSV, export data, dan salin link personal." />
+          <Feature number="04" title="Preview cepat" text="Landing hanya memuat thumbnail real, bukan iframe template berat." />
         </div>
       </section>
 
@@ -155,8 +165,8 @@ function App() {
             <div className="templatePanel">
               <h3>{activeGroup.label} <span>{activeGroup.price_label}</span></h3>
               <div className="templateGrid">
-                {visibleTemplates.map((template) => (
-                  <TemplateCard template={template} key={template.key} />
+                {visibleTemplates.map((template, index) => (
+                  <TemplateCard template={template} index={index} key={template.key} />
                 ))}
               </div>
               {visibleTemplates.length === 0 && <div className="empty">Template tidak ditemukan.</div>}
@@ -177,12 +187,22 @@ function App() {
           <span className="sectionKicker">Alur kerja</span>
           <h2 className="sectionTitle">Dari data acara ke link siap sebar.</h2>
           <div className="steps">
-            <Feature title="1. Pilih template" text="Tentukan desain yang paling cocok dengan karakter acara." />
-            <Feature title="2. Isi konten" text="Nama pasangan, tanggal, lokasi, foto, video, dan link peta." />
-            <Feature title="3. Sebar link" text="Import daftar tamu, salin link personal, lalu kirim ke WhatsApp." />
+            <Feature number="01" title="Pilih template" text="Tentukan desain yang paling cocok dengan karakter acara." />
+            <Feature number="02" title="Isi konten" text="Nama pasangan, tanggal, lokasi, foto, video, dan link peta." />
+            <Feature number="03" title="Sebar link" text="Import daftar tamu, salin link personal, lalu kirim ke WhatsApp." />
           </div>
         </div>
       </section>
+
+      {featuredTemplates.length > 0 && (
+        <section className="showcase">
+          <div className="showcaseTrack" aria-hidden="true">
+            {[...featuredTemplates, ...featuredTemplates].map((template, index) => (
+              <img src={template.thumbnail_url} alt="" key={`${template.key}-${index}`} loading="lazy" />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section id="harga" className="band cream">
         <div className="wrap">
@@ -212,13 +232,13 @@ function App() {
   );
 }
 
-function Feature({ title, text }) {
-  return <article className="feature"><b>{title}</b><p>{text}</p></article>;
+function Feature({ number, title, text }) {
+  return <article className="feature">{number && <span>{number}</span>}<b>{title}</b><p>{text}</p></article>;
 }
 
-function TemplateCard({ template }) {
+function TemplateCard({ template, index }) {
   return (
-    <article className="templateCard">
+    <article className="templateCard" style={{ '--delay': `${index * 70}ms` }}>
       <a className="templateThumb" target="_blank" rel="noopener noreferrer" href={template.preview_url}>
         <img src={template.thumbnail_url} alt={template.name} loading="lazy" />
       </a>
