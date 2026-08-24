@@ -6,3 +6,4 @@ storage/invitations/*.json
 storage/uploads/*
 !storage/invitations/.gitkeep
 !storage/uploads/.gitkeep
+node_modules/
