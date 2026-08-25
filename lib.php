@@ -2,20 +2,37 @@
 function cfg(): array { static $c; return $c ??= require __DIR__.'/config.php'; }
 function start_session(): void { if (session_status() !== PHP_SESSION_ACTIVE) session_start(); }
 function e(string $s): string { return htmlspecialchars($s, ENT_QUOTES, 'UTF-8'); }
-function app_logo_url(): string { return 'assets/brand/d-webin-logo.svg'; }
-function app_favicon_tags(): string {
-    $url = e(app_logo_url());
+function app_logo_url(string $prefix = ''): string { return $prefix.'assets/brand/d-webin-logo.svg'; }
+function app_favicon_tags(string $prefix = ''): string {
+    $url = e(app_logo_url($prefix));
     return '<link rel="icon" href="'.$url.'" sizes="any" type="image/svg+xml">'."\n"
         .'<link rel="apple-touch-icon" href="'.$url.'">'."\n"
         .'<meta name="msapplication-TileImage" content="'.$url.'">';
 }
-function app_stylesheet_tags(): string {
+function app_stylesheet_tags(string $prefix = ''): string {
     $path = __DIR__.'/assets/admin.css';
     $version = is_file($path) ? (string)filemtime($path) : (string)time();
-    return '<link rel="stylesheet" href="assets/admin.css?v='.e($version).'">';
+    return '<link rel="stylesheet" href="'.e($prefix).'assets/admin.css?v='.e($version).'">'."\n".app_sidebar_script();
 }
-function app_logo_mark(string $class = 'logo'): string {
-    return '<div class="'.e($class).'"><img src="'.e(app_logo_url()).'" alt="D-Webin"></div>';
+function app_sidebar_script(): string {
+    return <<<'HTML'
+<script>
+(function () {
+  try {
+    if (localStorage.getItem('dwebinSidebarHidden') === '1') document.documentElement.classList.add('sidebar-hidden');
+  } catch (e) {}
+  window.dwebinToggleSidebar = function () {
+    document.documentElement.classList.toggle('sidebar-hidden');
+    try { localStorage.setItem('dwebinSidebarHidden', document.documentElement.classList.contains('sidebar-hidden') ? '1' : '0'); } catch (e) {}
+  };
+})();
+</script>
+HTML;
+}
+function app_logo_mark(string $class = 'logo', string $prefix = ''): string {
+    $logo = '<div class="'.e($class).'"><img src="'.e(app_logo_url($prefix)).'" alt="D-Webin"></div>';
+    if ($class !== 'logo') return $logo;
+    return '<div class="brand-lockup">'.$logo.'<div class="brand-copy"><b>D-Webin Digital</b><span>Invitation</span></div></div><button class="sidebar-toggle" type="button" aria-label="Tampilkan atau sembunyikan sidebar" onclick="dwebinToggleSidebar()"><span></span><span></span><span></span></button>';
 }
 function default_whatsapp_message_template(): string {
     return "Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, {nama_tamu} untuk menghadiri acara pernikahan kami.\n\n"

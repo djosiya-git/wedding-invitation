@@ -37,12 +37,14 @@ a {
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
-  width: 230px;
+  width: 268px;
   background: rgba(255, 255, 255, 0.86);
   border-right: 1px solid var(--line);
   color: var(--text);
   padding: 26px 18px;
   backdrop-filter: blur(18px);
+  transition: width .22s ease, padding .22s ease, box-shadow .22s ease;
+  z-index: 20;
 }
 
 .logo,
@@ -58,7 +60,6 @@ a {
   color: var(--text);
   font-weight: 900;
   font-size: 18px;
-  margin-bottom: 28px;
   overflow: hidden;
 }
 
@@ -73,6 +74,7 @@ a {
 .sidebar nav {
   display: grid;
   gap: 8px;
+  transition: opacity .18s ease, transform .18s ease;
 }
 
 .sidebar nav a {
@@ -88,10 +90,100 @@ a {
   color: var(--primary-dark);
 }
 
+.brand-lockup {
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.brand-copy {
+  min-width: 0;
+}
+
+.brand-copy b,
+.brand-copy span {
+  display: block;
+  white-space: nowrap;
+}
+
+.brand-copy b {
+  color: var(--primary-dark);
+  font-size: 15px;
+  line-height: 1.1;
+  font-weight: 950;
+}
+
+.brand-copy span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.sidebar-toggle {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  width: 42px;
+  height: 42px;
+  margin: -12px 0 18px 4px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 24px rgba(22, 136, 199, 0.12);
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+.sidebar-toggle:hover {
+  border-color: rgba(22, 136, 199, 0.48);
+  box-shadow: 0 14px 28px rgba(22, 136, 199, 0.18);
+  transform: translateY(-1px);
+}
+
+.sidebar-toggle span {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--primary-dark);
+}
+
+.sidebar-hidden .sidebar {
+  width: 82px;
+  padding: 22px 14px;
+}
+
+.sidebar-hidden .brand-lockup {
+  grid-template-columns: 50px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.sidebar-hidden .brand-copy,
+.sidebar-hidden .sidebar nav {
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-8px);
+}
+
+.sidebar-hidden .sidebar-toggle {
+  margin-left: 6px;
+}
+
 .app {
-  margin-left: 230px;
+  margin-left: 268px;
   padding: 34px;
   max-width: 1680px;
+  transition: margin-left .22s ease;
+}
+
+.sidebar-hidden .app {
+  margin-left: 82px;
 }
 
 .narrow {
@@ -1326,14 +1418,25 @@ td small {
 
 @media (max-width: 760px) {
   .sidebar {
-    position: static;
+    position: relative;
     width: auto;
     height: auto;
     padding: 12px;
   }
 
   .sidebar .logo {
-    display: none;
+    display: grid;
+  }
+
+  .brand-lockup {
+    margin-bottom: 12px;
+  }
+
+  .sidebar-toggle {
+    position: absolute;
+    top: 16px;
+    right: 12px;
+    margin: 0;
   }
 
   .sidebar nav {
@@ -1348,6 +1451,30 @@ td small {
   .app {
     margin: 0;
     padding: 18px;
+  }
+
+  .sidebar-hidden .sidebar {
+    width: auto;
+    padding: 12px;
+  }
+
+  .sidebar-hidden .brand-lockup {
+    grid-template-columns: 50px minmax(0, 1fr);
+    justify-content: start;
+  }
+
+  .sidebar-hidden .brand-copy {
+    pointer-events: auto;
+    opacity: 1;
+    transform: none;
+  }
+
+  .sidebar-hidden .sidebar nav {
+    display: none;
+  }
+
+  .sidebar-hidden .app {
+    margin: 0;
   }
 
   header {

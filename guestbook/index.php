@@ -11,12 +11,12 @@ $stats = guestbook_stats($inv['slug']);
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Guestbook - <?=e($inv['title'])?></title>
-  <link rel="icon" href="../assets/brand/d-webin-logo.svg" sizes="any" type="image/svg+xml">
-  <link rel="stylesheet" href="../assets/admin.css?v=<?=e((string)filemtime(__DIR__.'/../assets/admin.css'))?>">
+  <?=app_favicon_tags('../')?>
+  <?=app_stylesheet_tags('../')?>
 </head>
 <body class="guestbook-body">
 <aside class="sidebar">
-  <div class="logo"><img src="../assets/brand/d-webin-logo.svg" alt="D-Webin"></div>
+  <?=app_logo_mark('logo', '../')?>
   <nav>
     <a class="active" href="index.php">Dashboard</a>
     <a href="../guests.php?slug=<?=urlencode($inv['slug'])?>">Kelola Tamu</a>
