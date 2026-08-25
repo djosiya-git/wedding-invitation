@@ -12,7 +12,6 @@ const fallbackData = {
 function App() {
   const [data, setData] = useState(fallbackData);
   const [activeKey, setActiveKey] = useState('');
-  const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState({});
   const [loading, setLoading] = useState(true);
 
@@ -41,19 +40,17 @@ function App() {
 
   const groups = data.groups || [];
   const activeGroup = groups.find((group) => group.key === activeKey) || groups[0];
-  const heroGroups = ['animation', 'minimalist', 'vintage']
+  const heroGroups = ['graduation', 'animation', 'minimalist']
     .map((key) => groups.find((group) => group.key === key))
     .filter(Boolean);
   const featuredTemplates = groups.flatMap((group) => group.templates.slice(0, 2)).slice(0, 6);
 
   const visibleTemplates = useMemo(() => {
     if (!activeGroup) return [];
-    const term = query.trim().toLowerCase();
-    const list = activeGroup.templates.filter((template) => template.name.toLowerCase().includes(term));
-    return expanded[activeGroup.key] || term ? list : list.slice(0, 5);
-  }, [activeGroup, expanded, query]);
+    return expanded[activeGroup.key] ? activeGroup.templates : activeGroup.templates.slice(0, 5);
+  }, [activeGroup, expanded]);
 
-  const hasMore = activeGroup && !expanded[activeGroup.key] && !query && activeGroup.templates.length > 5;
+  const hasMore = activeGroup && !expanded[activeGroup.key] && activeGroup.templates.length > 5;
 
   return (
     <>
@@ -142,10 +139,10 @@ function App() {
           <span className="sectionKicker">Kategori solusi</span>
           <h2 className="sectionTitle">Satu platform untuk beragam agenda.</h2>
           <div className="useCases">
-            <UseCase title="Wedding Invitation" text="Undangan pernikahan digital dengan tampilan elegan, nama tamu personal, detail acara, galeri, peta lokasi, dan pesan WhatsApp siap kirim." />
-            <UseCase title="Graduation Invitation" text="Undangan wisuda atau graduation ceremony dengan konsep formal, informasi institusi, jadwal acara, dan akses berbasis QR invitation pass." />
-            <UseCase title="Corporate Event" text="Undangan untuk gathering, launching, anniversary perusahaan, dan agenda internal dengan identitas acara yang profesional." />
-            <UseCase title="Seminar & Workshop" text="Undangan seminar, pelatihan, dan workshop yang dapat dilengkapi data peserta, sesi acara, lokasi, serta validasi kehadiran." />
+            <UseCase label="01" title="Wedding Invitation" text="Undangan pernikahan digital dengan tampilan elegan, detail acara, galeri, peta lokasi, dan tautan tamu personal." />
+            <UseCase label="02" title="Graduation Invitation" text="Undangan wisuda atau graduation ceremony dengan informasi institusi, jadwal acara, dan akses berbasis QR invitation pass." />
+            <UseCase label="03" title="Corporate Event" text="Undangan untuk gathering, launching, anniversary perusahaan, dan agenda internal dengan identitas acara yang profesional." />
+            <UseCase label="04" title="Seminar & Workshop" text="Undangan seminar, pelatihan, dan workshop dengan data peserta, sesi acara, lokasi, serta validasi kehadiran." />
           </div>
         </div>
       </section>
@@ -167,13 +164,6 @@ function App() {
                 </button>
               ))}
             </div>
-            <input
-              className="search"
-              type="search"
-              placeholder="Cari template..."
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
           </div>
 
           {activeGroup ? (
@@ -274,8 +264,8 @@ function Feature({ number, title, text }) {
   return <article className="feature">{number && <span>{number}</span>}<b>{title}</b><p>{text}</p></article>;
 }
 
-function UseCase({ title, text }) {
-  return <article className="useCase"><b>{title}</b><p>{text}</p></article>;
+function UseCase({ label, title, text }) {
+  return <article className="useCase"><span>{label}</span><b>{title}</b><p>{text}</p></article>;
 }
 
 function TemplateCard({ template, index }) {

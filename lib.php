@@ -70,6 +70,8 @@ function template_categories(): array {
         'minimalist' => 'Minimalist',
         'luxury' => 'Luxury',
         'graduation' => 'Graduation',
+        'corporate' => 'Corporate',
+        'seminar' => 'Seminar',
         'vintage' => 'Vintage',
     ];
 }
@@ -91,6 +93,8 @@ function default_template_category_prices(): array {
         'minimalist' => 90000,
         'luxury' => 0,
         'graduation' => 0,
+        'corporate' => 0,
+        'seminar' => 0,
         'vintage' => 105000,
     ];
 }
