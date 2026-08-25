@@ -257,6 +257,8 @@ function init_db(PDO $pdo, string $driver): void {
             group_label VARCHAR(120) NOT NULL DEFAULT '',
             note TEXT NULL,
             status VARCHAR(30) NOT NULL DEFAULT 'pending',
+            checked_in_at VARCHAR(40) NULL,
+            checked_in_by VARCHAR(120) NOT NULL DEFAULT '',
             created_at VARCHAR(40) NOT NULL,
             updated_at VARCHAR(40) NOT NULL,
             CONSTRAINT fk_guests_invitation FOREIGN KEY(invitation_slug) REFERENCES invitations(slug) ON DELETE CASCADE
@@ -288,6 +290,8 @@ function init_db(PDO $pdo, string $driver): void {
             group_label TEXT NOT NULL DEFAULT '',
             note TEXT NOT NULL DEFAULT '',
             status TEXT NOT NULL DEFAULT 'pending',
+            checked_in_at TEXT NOT NULL DEFAULT '',
+            checked_in_by TEXT NOT NULL DEFAULT '',
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
             FOREIGN KEY(invitation_slug) REFERENCES invitations(slug) ON DELETE CASCADE
@@ -296,6 +300,7 @@ function init_db(PDO $pdo, string $driver): void {
     ensure_invitation_event_at_column($pdo, $driver);
     ensure_invitation_whatsapp_message_column($pdo, $driver);
     ensure_invitation_customer_columns($pdo, $driver);
+    ensure_guest_checkin_columns($pdo, $driver);
     if ($driver === 'mysql') {
         $stmt=$pdo->query("SHOW INDEX FROM guests WHERE Key_name='idx_guests_invitation'");
         if(!$stmt->fetch()) $pdo->exec("CREATE INDEX idx_guests_invitation ON guests(invitation_slug, name)");
@@ -304,6 +309,19 @@ function init_db(PDO $pdo, string $driver): void {
     }
     if ($driver === 'mysql') migrate_sqlite_invitations($pdo);
     migrate_json_invitations($pdo);
+}
+function ensure_guest_checkin_columns(PDO $pdo, string $driver): void {
+    if ($driver === 'mysql') {
+        $stmt = $pdo->query("SHOW COLUMNS FROM guests LIKE 'checked_in_at'");
+        if (!$stmt->fetch()) $pdo->exec("ALTER TABLE guests ADD checked_in_at VARCHAR(40) NULL AFTER status");
+        $stmt = $pdo->query("SHOW COLUMNS FROM guests LIKE 'checked_in_by'");
+        if (!$stmt->fetch()) $pdo->exec("ALTER TABLE guests ADD checked_in_by VARCHAR(120) NOT NULL DEFAULT '' AFTER checked_in_at");
+        return;
+    }
+    $columns = [];
+    foreach ($pdo->query("PRAGMA table_info(guests)") as $column) $columns[$column['name'] ?? ''] = true;
+    if (empty($columns['checked_in_at'])) $pdo->exec("ALTER TABLE guests ADD COLUMN checked_in_at TEXT NOT NULL DEFAULT ''");
+    if (empty($columns['checked_in_by'])) $pdo->exec("ALTER TABLE guests ADD COLUMN checked_in_by TEXT NOT NULL DEFAULT ''");
 }
 function ensure_invitation_event_at_column(PDO $pdo, string $driver): void {
     if ($driver === 'mysql') {
@@ -499,6 +517,59 @@ function delete_guest(string $slug, int $id): void {
 function guest_by_id(string $slug, int $id): ?array {
     $stmt=db()->prepare('SELECT * FROM guests WHERE id=? AND invitation_slug=?'); $stmt->execute([$id,$slug]);
     $d=$stmt->fetch(); return $d?:null;
+}
+function guest_checkin_code(array $inv, array $guest): string {
+    return $inv['slug'].'-'.(int)$guest['id'];
+}
+function guestbook_current_invitation(): ?array {
+    start_session();
+    $slug = (string)($_SESSION['customer_slug'] ?? '');
+    return $slug !== '' ? load_invitation($slug) : null;
+}
+function require_guestbook_customer(): array {
+    $inv = guestbook_current_invitation();
+    if (!$inv) {
+        header('Location: login.php');
+        exit;
+    }
+    return $inv;
+}
+function guestbook_stats(string $slug): array {
+    $guests = all_guests($slug);
+    $checkedIn = 0;
+    foreach ($guests as $guest) {
+        if (!empty($guest['checked_in_at'])) $checkedIn++;
+    }
+    return [
+        'total' => count($guests),
+        'checked_in' => $checkedIn,
+        'remaining' => max(0, count($guests) - $checkedIn),
+    ];
+}
+function parse_guest_scan_payload(string $payload, string $expectedSlug): int {
+    $payload = trim($payload);
+    if ($payload === '') return 0;
+    $parts = parse_url($payload);
+    if (!empty($parts['query'])) {
+        parse_str((string)$parts['query'], $query);
+        if (($query['slug'] ?? '') === $expectedSlug && !empty($query['guest'])) return (int)$query['guest'];
+    }
+    if (preg_match('/(?:^|[^a-z0-9])guest[=\/:-](\d+)/i', $payload, $m)) return (int)$m[1];
+    if (preg_match('/^'.preg_quote($expectedSlug, '/').'-(\d+)$/', $payload, $m)) return (int)$m[1];
+    if (preg_match('/^\d+$/', $payload)) return (int)$payload;
+    return 0;
+}
+function mark_guest_checked_in(string $slug, int $guestId, string $operator): array {
+    $guest = guest_by_id($slug, $guestId);
+    if (!$guest) return ['ok' => false, 'status' => 'not_found', 'message' => 'Tamu tidak ditemukan.'];
+    if (!empty($guest['checked_in_at'])) {
+        return ['ok' => true, 'status' => 'already_checked_in', 'message' => 'Tamu sudah check-in sebelumnya.', 'guest' => $guest];
+    }
+    $now = date('c');
+    $stmt = db()->prepare('UPDATE guests SET checked_in_at=?, checked_in_by=?, updated_at=? WHERE id=? AND invitation_slug=?');
+    $stmt->execute([$now, $operator, $now, $guestId, $slug]);
+    $guest = guest_by_id($slug, $guestId) ?: $guest;
+    return ['ok' => true, 'status' => 'checked_in', 'message' => 'Check-in berhasil.', 'guest' => $guest];
 }
 function invitation_by_customer_username(string $username): ?array {
     $username = trim($username);

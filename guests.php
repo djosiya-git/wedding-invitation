@@ -30,9 +30,19 @@ if (($_GET['action'] ?? '') === 'template') {
 if (($_GET['action'] ?? '') === 'export') {
     $rows = [];
     foreach (all_guests($slug) as $g) {
-        $rows[] = [$g['name'], $g['phone'], $g['group_label'], $g['status'], $g['note'], guest_link($inv, $g)];
+        $rows[] = [
+            $g['name'],
+            $g['phone'],
+            $g['group_label'],
+            $g['status'],
+            $g['note'],
+            guest_checkin_code($inv, $g),
+            (string)($g['checked_in_at'] ?? ''),
+            (string)($g['checked_in_by'] ?? ''),
+            guest_link($inv, $g),
+        ];
     }
-    download_csv('tamu-'.$slug.'.csv', ['name', 'phone', 'group_label', 'status', 'note', 'personal_link'], $rows);
+    download_csv('tamu-'.$slug.'.csv', ['name', 'phone', 'group_label', 'status', 'note', 'checkin_code', 'checked_in_at', 'checked_in_by', 'personal_link'], $rows);
 }
 
 $edit = null;
@@ -128,7 +138,7 @@ $guests = all_guests($slug);
 </aside>
 <main class="app">
   <header>
-    <div><h1>Kelola Tamu</h1><p><?=e($inv['title'])?> · <?=count($guests)?> tamu</p></div>
+    <div><h1>Kelola Tamu</h1><p><?=e($inv['title'])?> &middot; <?=count($guests)?> tamu</p></div>
     <?php if($isAdmin):?>
     <div class="header-actions">
       <a class="btn" href="editor.php?slug=<?=urlencode($slug)?>">Editor</a>
