@@ -719,7 +719,7 @@ function apply_guest_barcode(string $html, array $inv, ?array $guest): string {
     $logoUrl = ($adminBase ? $adminBase.'/' : '').'assets/brand/d-webin-logo.svg';
     $css = <<<'HTML'
 <style id="dwebin-guest-barcode-style">
-.dwebin-barcode-trigger{position:fixed;right:18px;bottom:92px;z-index:99998;display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(15,111,165,.24);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:0 14px 34px rgba(12,57,86,.18);backdrop-filter:blur(14px);cursor:pointer;padding:0}.dwebin-barcode-trigger svg{width:24px;height:24px;display:block}.dwebin-barcode-trigger:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(12,57,86,.23)}.dwebin-barcode-modal{position:fixed;inset:0;z-index:100000;display:none;place-items:center;padding:18px;background:rgba(7,27,40,.58);backdrop-filter:blur(8px)}.dwebin-barcode-modal.is-open{display:grid}.dwebin-barcode-card{width:min(376px,calc(100vw - 34px));border:1px solid rgba(15,111,165,.24);border-radius:24px;background:#fff;box-shadow:0 24px 70px rgba(7,27,40,.28);padding:16px;text-align:center;font-family:Arial,Helvetica,sans-serif;color:#172636}.dwebin-barcode-card h3{margin:0 0 10px!important;font:800 16px/1.2 Arial,Helvetica,sans-serif!important;color:#0f6fa5!important}.dwebin-qr-box{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:1/1;overflow:hidden;border:1px solid rgba(15,111,165,.14);border-radius:14px;background:#fff}.dwebin-qr-box canvas,.dwebin-qr-box img{display:block;width:88%!important;height:88%!important;object-fit:contain}.dwebin-qr-logo{position:absolute;left:50%;top:50%;width:38px!important;height:38px!important;transform:translate(-50%,-50%);border-radius:12px;background:#fff;padding:7px;box-shadow:0 0 0 8px #fff;object-fit:contain}.dwebin-qr-fallback{display:none}.dwebin-qr-box:not(.is-ready) .dwebin-qr-fallback{display:block}.dwebin-barcode-card span{display:block;margin-top:10px;font-size:12px;font-weight:800;color:#68788a;word-break:break-all}.dwebin-barcode-close{margin-top:14px;width:100%;min-height:42px;border:0;border-radius:14px;background:#0f6fa5;color:#fff;font:800 14px/1 Arial,Helvetica,sans-serif;cursor:pointer}@media(max-width:640px){.dwebin-barcode-trigger{right:12px;bottom:82px;width:44px;height:44px;border-radius:14px}.dwebin-barcode-card{width:min(340px,calc(100vw - 28px));padding:12px;border-radius:20px}.dwebin-qr-logo{width:32px!important;height:32px!important;padding:6px}}
+.dwebin-barcode-trigger{position:fixed;right:18px;bottom:92px;z-index:99998;display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(15,111,165,.24);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:0 14px 34px rgba(12,57,86,.18);backdrop-filter:blur(14px);cursor:pointer;padding:0}.dwebin-barcode-trigger svg{width:24px;height:24px;display:block}.dwebin-barcode-trigger:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(12,57,86,.23)}.dwebin-barcode-modal{position:fixed;inset:0;z-index:100000;display:none;place-items:center;padding:18px;background:rgba(7,27,40,.58);backdrop-filter:blur(8px)}.dwebin-barcode-modal.is-open{display:grid}.dwebin-barcode-card{width:min(376px,calc(100vw - 34px));border:1px solid rgba(15,111,165,.24);border-radius:24px;background:#fff;box-shadow:0 24px 70px rgba(7,27,40,.28);padding:16px;text-align:center;font-family:Arial,Helvetica,sans-serif;color:#172636}.dwebin-barcode-card h3{margin:0 0 10px!important;font:800 16px/1.2 Arial,Helvetica,sans-serif!important;color:#0f6fa5!important}.dwebin-qr-box{position:relative;display:grid;place-items:center;width:100%;aspect-ratio:1/1;overflow:hidden;border:1px solid rgba(15,111,165,.14);border-radius:14px;background:#fff}.dwebin-qr-box canvas,.dwebin-qr-box>img:not(.dwebin-qr-logo){display:block;width:88%!important;height:88%!important;object-fit:contain}.dwebin-qr-logo{position:absolute!important;left:50%!important;top:50%!important;z-index:3!important;display:block!important;width:34px!important;height:34px!important;min-width:0!important;max-width:34px!important;min-height:0!important;max-height:34px!important;transform:translate(-50%,-50%)!important;border-radius:11px!important;background:#fff!important;padding:6px!important;box-shadow:0 0 0 7px #fff!important;object-fit:contain!important}.dwebin-qr-fallback{display:block}.dwebin-qr-box.is-ready .dwebin-qr-fallback{display:none!important}.dwebin-barcode-card span{display:block;margin-top:10px;font-size:12px;font-weight:800;color:#68788a;word-break:break-all}.dwebin-barcode-close{margin-top:14px;width:100%;min-height:42px;border:0;border-radius:14px;background:#0f6fa5;color:#fff;font:800 14px/1 Arial,Helvetica,sans-serif;cursor:pointer}@media(max-width:640px){.dwebin-barcode-trigger{right:12px;bottom:82px;width:44px;height:44px;border-radius:14px}.dwebin-barcode-card{width:min(340px,calc(100vw - 28px));padding:12px;border-radius:20px}.dwebin-qr-logo{width:30px!important;height:30px!important;max-width:30px!important;max-height:30px!important;padding:5px!important;box-shadow:0 0 0 6px #fff!important}}
 </style>
 HTML;
     $script = <<<'HTML'
@@ -732,7 +732,9 @@ HTML;
     var box = modal.querySelector('.dwebin-qr-box');
     if (!box || box.dataset.ready === '1' || !window.QRCode) return;
     var code = box.getAttribute('data-code') || '';
+    var logo = box.getAttribute('data-logo') || '';
     if (!code) return;
+    box.innerHTML = '';
     new QRCode(box, {
       text: code,
       width: 288,
@@ -741,6 +743,13 @@ HTML;
       colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.H
     });
+    if (logo) {
+      var logoImage = document.createElement('img');
+      logoImage.className = 'dwebin-qr-logo';
+      logoImage.src = logo;
+      logoImage.alt = '';
+      box.appendChild(logoImage);
+    }
     box.dataset.ready = '1';
     box.classList.add('is-ready');
   }
@@ -765,7 +774,7 @@ HTML;
 </script>
 HTML;
     $icon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f6fa5" d="M4 4h7v7H4V4Zm2 2v3h3V6H6Zm7-2h7v7h-7V4Zm2 2v3h3V6h-3ZM4 13h7v7H4v-7Zm2 2v3h3v-3H6Zm8-2h2v2h-2v-2Zm4 0h2v2h-2v-2Zm-4 4h2v3h-2v-3Zm3-1h3v4h-2v-2h-1v-2Z"/></svg>';
-    $card = '<button class="dwebin-barcode-trigger" type="button" aria-label="Tampilkan barcode check-in">'.$icon.'</button><div class="dwebin-barcode-modal" aria-hidden="true"><div class="dwebin-barcode-card" role="dialog" aria-label="Barcode check-in tamu"><h3>Barcode Check-in</h3><div class="dwebin-qr-box" data-code="'.e($code).'"><img class="dwebin-qr-fallback" src="'.e($barcodeUrl).'" alt="Barcode '.e($code).'" loading="lazy"><img class="dwebin-qr-logo" src="'.e($logoUrl).'" alt=""></div><span>'.e($code).'</span><button class="dwebin-barcode-close" type="button">Tutup</button></div></div>';
+    $card = '<button class="dwebin-barcode-trigger" type="button" aria-label="Tampilkan barcode check-in">'.$icon.'</button><div class="dwebin-barcode-modal" aria-hidden="true"><div class="dwebin-barcode-card" role="dialog" aria-label="Barcode check-in tamu"><h3>Barcode Check-in</h3><div class="dwebin-qr-box" data-code="'.e($code).'" data-logo="'.e($logoUrl).'"><img class="dwebin-qr-fallback" src="'.e($barcodeUrl).'" alt="Barcode '.e($code).'" loading="lazy"></div><span>'.e($code).'</span><button class="dwebin-barcode-close" type="button">Tutup</button></div></div>';
     if (stripos($html, 'dwebin-guest-barcode-style') === false) $html = str_ireplace('</head>', $css.'</head>', $html);
     if (stripos($html, 'assets/vendor/qrcode.min.js') === false) $html = str_ireplace('</body>', '<script src="'.e($qrLibraryUrl).'"></script></body>', $html);
     return str_ireplace('</body>', $card.$script.'</body>', $html);
