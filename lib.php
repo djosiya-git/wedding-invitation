@@ -554,6 +554,11 @@ function guest_by_id(string $slug, int $id): ?array {
 function guest_checkin_code(array $inv, array $guest): string {
     return $inv['slug'].'-'.(int)$guest['id'];
 }
+function guest_barcode_url(array $inv, array $guest): string {
+    $base = rtrim((string)(cfg()['base_url'] ?? ''), '/');
+    $path = 'barcode.php?code='.rawurlencode(guest_checkin_code($inv, $guest));
+    return ($base ? $base.'/' : '').$path;
+}
 function guestbook_current_invitation(): ?array {
     start_session();
     $slug = (string)($_SESSION['customer_slug'] ?? '');
@@ -695,13 +700,72 @@ function apply_replacements(string $html,array $inv): string {
         }
     }
     $guestName='';
+    $guest = null;
     if(isset($_GET['guest'])){ $guest=guest_by_id($inv['slug'], (int)$_GET['guest']); if($guest)$guestName=$guest['name']; }
     if($guestName==='') $guestName=trim($_GET['to']??'');
     if($guestName!=='') $html=str_replace('Nama Tamu', e($guestName), $html);
     $html=apply_countdown_event($html, $inv);
     $html=apply_template_runtime_fixes($html);
+    $html=apply_guest_barcode($html, $inv, $guest);
     $html=str_replace('</head>', '<meta name="generator" content="D-Webin Invitation Manager"></head>', $html);
     return $html;
+}
+function apply_guest_barcode(string $html, array $inv, ?array $guest): string {
+    if (!$guest || !invitation_guestbook_enabled($inv)) return $html;
+    $code = guest_checkin_code($inv, $guest);
+    $barcodeUrl = guest_barcode_url($inv, $guest);
+    $css = <<<'HTML'
+<style id="dwebin-guest-barcode-style">
+.dwebin-guest-barcode{position:fixed;right:18px;bottom:18px;z-index:99999;width:min(232px,calc(100vw - 36px));padding:12px 12px 10px;border:1px solid rgba(15,111,165,.22);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:0 18px 44px rgba(12,57,86,.18);backdrop-filter:blur(14px);font-family:Arial,Helvetica,sans-serif;color:#172636;text-align:center}.dwebin-guest-barcode b{display:block;margin:0 0 8px;font-size:12px;line-height:1.2;letter-spacing:.08em;text-transform:uppercase;color:#0f6fa5}.dwebin-guest-barcode img{display:block;width:100%;height:auto;padding:8px;border-radius:10px;background:#fff}.dwebin-guest-barcode span{display:block;margin-top:7px;font-size:11px;font-weight:700;color:#68788a;word-break:break-all}@media(max-width:640px){.dwebin-guest-barcode{right:12px;bottom:12px;width:188px;padding:10px}.dwebin-guest-barcode b{font-size:11px}}
+</style>
+HTML;
+    $card = '<div class="dwebin-guest-barcode" aria-label="Barcode check-in tamu"><b>Barcode Check-in</b><img src="'.e($barcodeUrl).'" alt="Barcode '.e($code).'" loading="lazy"><span>'.e($code).'</span></div>';
+    if (stripos($html, 'dwebin-guest-barcode-style') === false) $html = str_ireplace('</head>', $css.'</head>', $html);
+    return str_ireplace('</body>', $card.'</body>', $html);
+}
+function code128_svg(string $text): string {
+    $patterns = [
+        '212222','222122','222221','121223','121322','131222','122213','122312','132212','221213',
+        '221312','231212','112232','122132','122231','113222','123122','123221','223211','221132',
+        '221231','213212','223112','312131','311222','321122','321221','312212','322112','322211',
+        '212123','212321','232121','111323','131123','131321','112313','132113','132311','211313',
+        '231113','231311','112133','112331','132131','113123','113321','133121','313121','211331',
+        '231131','213113','213311','213131','311123','311321','331121','312113','312311','332111',
+        '314111','221411','431111','111224','111422','121124','121421','141122','141221','112214',
+        '112412','122114','122411','142112','142211','241211','221114','413111','241112','134111',
+        '111242','121142','121241','114212','124112','124211','411212','421112','421211','212141',
+        '214121','412121','111143','111341','131141','114113','114311','411113','411311','113141',
+        '114131','311141','411131','211412','211214','211232','2331112',
+    ];
+    $codes = [104];
+    $checksum = 104;
+    $position = 1;
+    foreach (str_split($text) as $char) {
+        $value = ord($char) - 32;
+        $codes[] = $value;
+        $checksum += $value * $position;
+        $position++;
+    }
+    $codes[] = $checksum % 103;
+    $codes[] = 106;
+
+    $module = 2;
+    $height = 76;
+    $quiet = 18;
+    $x = $quiet;
+    $bars = '';
+    foreach ($codes as $code) {
+        $pattern = $patterns[$code] ?? '';
+        $black = true;
+        foreach (str_split($pattern) as $width) {
+            $w = (int)$width * $module;
+            if ($black) $bars .= '<rect x="'.$x.'" y="0" width="'.$w.'" height="'.$height.'" fill="#111"/>';
+            $x += $w;
+            $black = !$black;
+        }
+    }
+    $totalWidth = $x + $quiet;
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="'.$totalWidth.'" height="'.$height.'" viewBox="0 0 '.$totalWidth.' '.$height.'" role="img" aria-label="'.e($text).'"><rect width="100%" height="100%" fill="#fff"/>'.$bars.'</svg>';
 }
 function format_template_text(string $value): string {
     return nl2br(e($value), false);
