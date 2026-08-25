@@ -171,18 +171,14 @@ a {
 }
 
 .sidebar-hidden .sidebar-brand {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 14px;
+  display: grid;
+  place-items: center;
   min-height: 0;
   margin-bottom: 0;
 }
 
 .sidebar-hidden .brand-lockup {
-  grid-template-columns: 48px;
-  justify-content: center;
+  display: none;
 }
 
 .sidebar-hidden .brand-copy,
@@ -194,8 +190,8 @@ a {
 
 .sidebar-hidden .sidebar-toggle {
   margin: 0;
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
   box-shadow: 0 10px 24px rgba(22, 136, 199, 0.12);
 }
