@@ -10,6 +10,7 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (hash_equals(cfg()['admin_username'], $_POST['username'] ?? '') && hash_equals(cfg()['admin_password'], $_POST['password'] ?? '')) {
         $_SESSION['admin'] = true;
+        unset($_SESSION['customer_slug'], $_SESSION['guestbook_username']);
         header('Location: index.php');
         exit;
     }

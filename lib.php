@@ -584,7 +584,12 @@ function is_customer_for_invitation(string $slug): bool {
 }
 function require_invitation_access(string $slug): void {
     start_session();
-    if (!empty($_SESSION['admin']) || is_customer_for_invitation($slug)) return;
+    if (!empty($_SESSION['customer_slug'])) {
+        if (is_customer_for_invitation($slug)) return;
+        http_response_code(403);
+        exit('Akses tamu tidak diizinkan untuk undangan ini.');
+    }
+    if (!empty($_SESSION['admin'])) return;
     header('Location: customer_login.php');
     exit;
 }

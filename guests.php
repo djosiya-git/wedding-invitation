@@ -8,7 +8,7 @@ if (!$inv) {
     exit('Undangan tidak ditemukan');
 }
 require_invitation_access($slug);
-$isAdmin = is_admin_user();
+$isAdmin = is_admin_user() && !is_customer_user();
 
 function download_csv(string $filename, array $headers, array $rows): void {
     header('Content-Type: text/csv; charset=utf-8');
@@ -133,6 +133,9 @@ $guests = all_guests($slug);
       <a href="customers.php">Pelanggan</a>
     <?php endif?>
     <a class="active" href="#">Tamu</a>
+    <?php if(!$isAdmin):?>
+      <a href="guestbook/index.php">Guestbook</a>
+    <?php endif?>
     <a href="logout.php">Keluar</a>
   </nav>
 </aside>

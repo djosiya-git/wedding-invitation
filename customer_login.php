@@ -12,6 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = (string)($_POST['password'] ?? '');
     $inv = invitation_by_customer_username($username);
     if ($inv && !empty($inv['customer_password_hash']) && password_verify($password, $inv['customer_password_hash'])) {
+        unset($_SESSION['admin'], $_SESSION['guestbook_username']);
         $_SESSION['customer_slug'] = $inv['slug'];
         header('Location: guests.php?slug='.urlencode($inv['slug']));
         exit;
