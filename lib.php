@@ -32,7 +32,7 @@ HTML;
 function app_logo_mark(string $class = 'logo', string $prefix = ''): string {
     $logo = '<div class="'.e($class).'"><img src="'.e(app_logo_url($prefix)).'" alt="D-Webin"></div>';
     if ($class !== 'logo') return $logo;
-    return '<div class="brand-lockup">'.$logo.'<div class="brand-copy"><b>D-Webin Digital</b><span>Invitation</span></div></div><button class="sidebar-toggle" type="button" aria-label="Tampilkan atau sembunyikan sidebar" onclick="dwebinToggleSidebar()"><span></span><span></span><span></span></button>';
+    return '<div class="sidebar-brand"><div class="brand-lockup">'.$logo.'<div class="brand-copy"><b>D-Webin Digital</b><span>Invitation</span></div></div><button class="sidebar-toggle" type="button" aria-label="Tampilkan atau sembunyikan sidebar" onclick="dwebinToggleSidebar()"><span></span><span></span><span></span></button></div>';
 }
 function default_whatsapp_message_template(): string {
     return "Tanpa mengurangi rasa hormat, perkenankan kami mengundang Bapak/Ibu/Saudara/i, {nama_tamu} untuk menghadiri acara pernikahan kami.\n\n"

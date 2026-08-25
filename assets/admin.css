@@ -51,10 +51,10 @@ a {
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 12px;
   background: linear-gradient(145deg, #ffffff, #eaf8ff);
   box-shadow: 0 10px 26px rgba(22, 136, 199, 0.12);
   color: var(--text);
@@ -65,8 +65,8 @@ a {
 
 .logo img,
 .brand-mark img {
-  width: 34px;
-  height: 34px;
+  width: 31px;
+  height: 31px;
   object-fit: contain;
   display: block;
 }
@@ -90,12 +90,21 @@ a {
   color: var(--primary-dark);
 }
 
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 54px;
+  margin-bottom: 24px;
+}
+
 .brand-lockup {
   display: grid;
-  grid-template-columns: 50px minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
   gap: 12px;
   align-items: center;
-  margin-bottom: 28px;
+  min-width: 0;
 }
 
 .brand-copy {
@@ -110,31 +119,34 @@ a {
 
 .brand-copy b {
   color: var(--primary-dark);
-  font-size: 15px;
-  line-height: 1.1;
+  font-size: 14px;
+  line-height: 1.15;
   font-weight: 950;
 }
 
 .brand-copy span {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: .08em;
+  letter-spacing: .1em;
   text-transform: uppercase;
 }
 
 .sidebar-toggle {
-  display: grid;
-  place-items: center;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
   gap: 4px;
-  width: 42px;
-  height: 42px;
-  margin: -12px 0 18px 4px;
+  width: 34px;
+  height: 34px;
+  margin: 0;
   border: 1px solid var(--line-strong);
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 10px 24px rgba(22, 136, 199, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 18px rgba(22, 136, 199, 0.1);
   cursor: pointer;
   transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
@@ -147,7 +159,7 @@ a {
 
 .sidebar-toggle span {
   display: block;
-  width: 18px;
+  width: 16px;
   height: 2px;
   border-radius: 999px;
   background: var(--primary-dark);
@@ -158,10 +170,15 @@ a {
   padding: 22px 14px;
 }
 
+.sidebar-hidden .sidebar-brand {
+  display: grid;
+  place-items: center;
+  gap: 12px;
+}
+
 .sidebar-hidden .brand-lockup {
-  grid-template-columns: 50px;
+  grid-template-columns: 48px;
   justify-content: center;
-  margin-bottom: 24px;
 }
 
 .sidebar-hidden .brand-copy,
@@ -172,7 +189,7 @@ a {
 }
 
 .sidebar-hidden .sidebar-toggle {
-  margin-left: 6px;
+  margin: 0;
 }
 
 .app {
@@ -1428,7 +1445,7 @@ td small {
     display: grid;
   }
 
-  .brand-lockup {
+  .sidebar-brand {
     margin-bottom: 12px;
   }
 
@@ -1459,7 +1476,7 @@ td small {
   }
 
   .sidebar-hidden .brand-lockup {
-    grid-template-columns: 50px minmax(0, 1fr);
+    grid-template-columns: 48px minmax(0, 1fr);
     justify-content: start;
   }
 
