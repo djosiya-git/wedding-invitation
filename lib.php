@@ -245,6 +245,7 @@ function init_db(PDO $pdo, string $driver): void {
             whatsapp_message_template LONGTEXT NULL,
             customer_username VARCHAR(120) NOT NULL DEFAULT '',
             customer_password_hash VARCHAR(255) NOT NULL DEFAULT '',
+            guestbook_enabled TINYINT(1) NOT NULL DEFAULT 1,
             replacements LONGTEXT NOT NULL,
             created_at VARCHAR(40) NOT NULL,
             updated_at VARCHAR(40) NOT NULL
@@ -278,6 +279,7 @@ function init_db(PDO $pdo, string $driver): void {
             whatsapp_message_template TEXT NOT NULL DEFAULT '',
             customer_username TEXT NOT NULL DEFAULT '',
             customer_password_hash TEXT NOT NULL DEFAULT '',
+            guestbook_enabled INTEGER NOT NULL DEFAULT 1,
             replacements TEXT NOT NULL DEFAULT '[]',
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL
@@ -300,6 +302,7 @@ function init_db(PDO $pdo, string $driver): void {
     ensure_invitation_event_at_column($pdo, $driver);
     ensure_invitation_whatsapp_message_column($pdo, $driver);
     ensure_invitation_customer_columns($pdo, $driver);
+    ensure_invitation_guestbook_column($pdo, $driver);
     ensure_guest_checkin_columns($pdo, $driver);
     if ($driver === 'mysql') {
         $stmt=$pdo->query("SHOW INDEX FROM guests WHERE Key_name='idx_guests_invitation'");
@@ -366,6 +369,16 @@ function ensure_invitation_customer_columns(PDO $pdo, string $driver): void {
     if (empty($columns['customer_username'])) $pdo->exec("ALTER TABLE invitations ADD COLUMN customer_username TEXT NOT NULL DEFAULT ''");
     if (empty($columns['customer_password_hash'])) $pdo->exec("ALTER TABLE invitations ADD COLUMN customer_password_hash TEXT NOT NULL DEFAULT ''");
 }
+function ensure_invitation_guestbook_column(PDO $pdo, string $driver): void {
+    if ($driver === 'mysql') {
+        $stmt = $pdo->query("SHOW COLUMNS FROM invitations LIKE 'guestbook_enabled'");
+        if (!$stmt->fetch()) $pdo->exec("ALTER TABLE invitations ADD guestbook_enabled TINYINT(1) NOT NULL DEFAULT 1 AFTER customer_password_hash");
+        return;
+    }
+    $columns = [];
+    foreach ($pdo->query("PRAGMA table_info(invitations)") as $column) $columns[$column['name'] ?? ''] = true;
+    if (empty($columns['guestbook_enabled'])) $pdo->exec("ALTER TABLE invitations ADD COLUMN guestbook_enabled INTEGER NOT NULL DEFAULT 1");
+}
 function invitation_path(string $slug): string { return __DIR__.'/storage/invitations/'.basename($slug).'.json'; }
 function migrate_sqlite_invitations(PDO $pdo): void {
     $path=__DIR__.'/storage/database.sqlite';
@@ -420,6 +433,7 @@ function normalize_invitation(array $d): array {
     $d['whatsapp_message_template'] = trim((string)($d['whatsapp_message_template'] ?? '')) ?: default_whatsapp_message_template();
     $d['customer_username'] = trim((string)($d['customer_username'] ?? ''));
     $d['customer_password_hash'] = (string)($d['customer_password_hash'] ?? '');
+    $d['guestbook_enabled'] = (int)($d['guestbook_enabled'] ?? 1) ? 1 : 0;
     return $d;
 }
 function normalize_event_at(?string $value): string {
@@ -461,18 +475,19 @@ function save_invitation(array $d): void {
     $d['whatsapp_message_template'] = trim((string)($d['whatsapp_message_template'] ?? '')) ?: default_whatsapp_message_template();
     $d['customer_username'] = trim((string)($d['customer_username'] ?? ''));
     $d['customer_password_hash'] = (string)($d['customer_password_hash'] ?? '');
-    $sql='INSERT INTO invitations (slug,title,template,status,event_at,whatsapp_message_template,customer_username,customer_password_hash,replacements,created_at,updated_at)
-        VALUES (:slug,:title,:template,:status,:event_at,:whatsapp_message_template,:customer_username,:customer_password_hash,:replacements,:created_at,:updated_at)
+    $d['guestbook_enabled'] = (int)($d['guestbook_enabled'] ?? 1) ? 1 : 0;
+    $sql='INSERT INTO invitations (slug,title,template,status,event_at,whatsapp_message_template,customer_username,customer_password_hash,guestbook_enabled,replacements,created_at,updated_at)
+        VALUES (:slug,:title,:template,:status,:event_at,:whatsapp_message_template,:customer_username,:customer_password_hash,:guestbook_enabled,:replacements,:created_at,:updated_at)
         ON CONFLICT(slug) DO UPDATE SET title=excluded.title, template=excluded.template, status=excluded.status, event_at=excluded.event_at,
         whatsapp_message_template=excluded.whatsapp_message_template, customer_username=excluded.customer_username,
-        customer_password_hash=excluded.customer_password_hash,
+        customer_password_hash=excluded.customer_password_hash, guestbook_enabled=excluded.guestbook_enabled,
         replacements=excluded.replacements, updated_at=excluded.updated_at';
     if ((cfg()['db_driver'] ?? 'sqlite') === 'mysql') {
-        $sql='INSERT INTO invitations (slug,title,template,status,event_at,whatsapp_message_template,customer_username,customer_password_hash,replacements,created_at,updated_at)
-            VALUES (:slug,:title,:template,:status,:event_at,:whatsapp_message_template,:customer_username,:customer_password_hash,:replacements,:created_at,:updated_at)
+        $sql='INSERT INTO invitations (slug,title,template,status,event_at,whatsapp_message_template,customer_username,customer_password_hash,guestbook_enabled,replacements,created_at,updated_at)
+            VALUES (:slug,:title,:template,:status,:event_at,:whatsapp_message_template,:customer_username,:customer_password_hash,:guestbook_enabled,:replacements,:created_at,:updated_at)
             ON DUPLICATE KEY UPDATE title=VALUES(title), template=VALUES(template), status=VALUES(status), event_at=VALUES(event_at),
             whatsapp_message_template=VALUES(whatsapp_message_template), customer_username=VALUES(customer_username),
-            customer_password_hash=VALUES(customer_password_hash),
+            customer_password_hash=VALUES(customer_password_hash), guestbook_enabled=VALUES(guestbook_enabled),
             replacements=VALUES(replacements), updated_at=VALUES(updated_at)';
     }
     $stmt=db()->prepare($sql);
@@ -481,6 +496,7 @@ function save_invitation(array $d): void {
         ':whatsapp_message_template'=>$d['whatsapp_message_template'],
         ':customer_username'=>$d['customer_username'],
         ':customer_password_hash'=>$d['customer_password_hash'],
+        ':guestbook_enabled'=>$d['guestbook_enabled'],
         ':replacements'=>json_encode($d['replacements']??[], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
         ':created_at'=>$d['created_at'], ':updated_at'=>$d['updated_at']
     ]);
@@ -526,10 +542,17 @@ function guestbook_current_invitation(): ?array {
     $slug = (string)($_SESSION['customer_slug'] ?? '');
     return $slug !== '' ? load_invitation($slug) : null;
 }
+function invitation_guestbook_enabled(array $inv): bool {
+    return (int)($inv['guestbook_enabled'] ?? 1) === 1;
+}
 function require_guestbook_customer(): array {
     $inv = guestbook_current_invitation();
     if (!$inv) {
         header('Location: login.php');
+        exit;
+    }
+    if (!invitation_guestbook_enabled($inv)) {
+        header('Location: ../guests.php?slug='.urlencode((string)$inv['slug']));
         exit;
     }
     return $inv;
@@ -590,7 +613,7 @@ function require_invitation_access(string $slug): void {
         exit('Akses tamu tidak diizinkan untuk undangan ini.');
     }
     if (!empty($_SESSION['admin'])) return;
-    header('Location: customer_login.php');
+    header('Location: guestbook/login.php');
     exit;
 }
 function is_admin_user(): bool { start_session(); return !empty($_SESSION['admin']); }

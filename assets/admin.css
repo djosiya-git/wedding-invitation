@@ -830,6 +830,31 @@ td small {
   font-weight: 500;
 }
 
+.toggle-row,
+.toggle-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  color: var(--text);
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.toggle-row {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--panel-soft);
+}
+
+.toggle-row input,
+.toggle-inline input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+}
+
 .success {
   padding: 12px 15px;
   background: var(--success-soft);

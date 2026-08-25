@@ -9,6 +9,11 @@ if (!$inv) {
     echo json_encode(['ok' => false, 'message' => 'Sesi guestbook berakhir. Silakan login kembali.']);
     exit;
 }
+if (!invitation_guestbook_enabled($inv)) {
+    http_response_code(403);
+    echo json_encode(['ok' => false, 'message' => 'Dashboard guestbook tidak aktif untuk undangan ini.']);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);

@@ -11,6 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $customerUsername = trim($_POST['customer_username'] ?? '');
     $customerPassword = (string)($_POST['customer_password'] ?? '');
+    $guestbookEnabled = isset($_POST['guestbook_enabled']) ? 1 : 0;
 
     if ($customerUsername === '' || $customerPassword === '') {
         $error = 'Username dan password pelanggan wajib diisi.';
@@ -26,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'status' => 'draft',
             'customer_username' => $customerUsername,
             'customer_password_hash' => password_hash($customerPassword, PASSWORD_DEFAULT),
+            'guestbook_enabled' => $guestbookEnabled,
             'replacements' => [],
         ];
         save_invitation($inv);
@@ -56,7 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <label>Username pelanggan<input name="customer_username" value="<?=e($_POST['customer_username'] ?? '')?>" placeholder="contoh: budi-siti" required></label>
       <label>Password pelanggan<input type="password" name="customer_password" placeholder="Password akses tamu" required></label>
     </div>
-    <small>Pelanggan login memakai akun ini dan hanya bisa membuka menu Kelola Tamu untuk undangan ini.</small>
+    <label class="toggle-row"><input type="checkbox" name="guestbook_enabled" value="1" <?=isset($_POST['guestbook_enabled'])?'checked':''?>> <span>Aktifkan dashboard guestbook dan scanner QR</span></label>
+    <small>Jika tidak aktif, pelanggan yang login hanya diarahkan ke menu Kelola Tamu.</small>
     <button class="btn primary">Buat & Buka Editor</button>
   </form>
 </main>

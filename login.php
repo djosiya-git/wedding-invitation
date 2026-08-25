@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <button class="btn primary">Masuk Dashboard</button>
     </form>
     <small>Default: admin / admin123 - ganti di config.php</small>
-    <small><a href="customer_login.php">Login pelanggan</a></small>
+    <small><a href="guestbook/login.php">Login pelanggan</a></small>
   </main>
 </body>
 </html>

@@ -3,7 +3,9 @@ require __DIR__.'/../lib.php';
 start_session();
 
 if (!empty($_SESSION['customer_slug'])) {
-    header('Location: index.php');
+    $currentInv = load_invitation((string)$_SESSION['customer_slug']);
+    $target = $currentInv && invitation_guestbook_enabled($currentInv) ? 'index.php' : '../guests.php?slug='.urlencode((string)$_SESSION['customer_slug']);
+    header('Location: '.$target);
     exit;
 }
 
@@ -16,7 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         unset($_SESSION['admin']);
         $_SESSION['customer_slug'] = $inv['slug'];
         $_SESSION['guestbook_username'] = $username;
-        header('Location: index.php');
+        $target = invitation_guestbook_enabled($inv) ? 'index.php' : '../guests.php?slug='.urlencode($inv['slug']);
+        header('Location: '.$target);
         exit;
     }
     $error = 'Username atau password tidak sesuai.';
@@ -42,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <label>Password<input type="password" name="password" required autocomplete="current-password"></label>
       <button class="btn primary">Masuk Guestbook</button>
     </form>
-    <small><a href="../customer_login.php">Kelola tamu pelanggan</a></small>
   </main>
 </body>
 </html>

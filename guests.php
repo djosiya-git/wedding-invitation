@@ -133,7 +133,7 @@ $guests = all_guests($slug);
       <a href="customers.php">Pelanggan</a>
     <?php endif?>
     <a class="active" href="#">Tamu</a>
-    <?php if(!$isAdmin):?>
+    <?php if(!$isAdmin && invitation_guestbook_enabled($inv)):?>
       <a href="guestbook/index.php">Guestbook</a>
     <?php endif?>
     <a href="logout.php">Keluar</a>
