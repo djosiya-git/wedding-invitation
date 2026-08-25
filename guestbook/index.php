@@ -109,6 +109,7 @@ $stats = guestbook_stats($inv['slug']);
   </section>
 
 </main>
+<script src="../assets/vendor/jsQR.min.js"></script>
 <script>
 (function () {
   var video = document.getElementById('camera');
@@ -125,6 +126,8 @@ $stats = guestbook_stats($inv['slug']);
   var attendanceEmpty = document.getElementById('attendanceEmpty');
   var stream = null;
   var detector = null;
+  var scanCanvas = document.createElement('canvas');
+  var scanContext = scanCanvas.getContext('2d', { willReadFrequently: true });
   var scanning = false;
   var lastPayload = '';
   var lastScanAt = 0;
@@ -195,16 +198,40 @@ $stats = guestbook_stats($inv['slug']);
       });
   }
 
+  function detectWithJsQr() {
+    if (!window.jsQR || !scanContext || !video.videoWidth || !video.videoHeight) return null;
+    scanCanvas.width = video.videoWidth;
+    scanCanvas.height = video.videoHeight;
+    scanContext.drawImage(video, 0, 0, scanCanvas.width, scanCanvas.height);
+    var imageData = scanContext.getImageData(0, 0, scanCanvas.width, scanCanvas.height);
+    var code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: 'attemptBoth'
+    });
+    return code && code.data ? code.data : null;
+  }
+
   function scanLoop() {
-    if (!scanning || !detector) return;
+    if (!scanning) return;
     if (video.readyState < 2) {
       setTimeout(scanLoop, 120);
+      return;
+    }
+
+    var qrPayload = detectWithJsQr();
+    if (qrPayload) {
+      submitPayload(qrPayload);
+      if (scanning) setTimeout(scanLoop, 140);
+      return;
+    }
+
+    if (!detector) {
+      setTimeout(scanLoop, 140);
       return;
     }
     detector.detect(video).then(function (codes) {
       if (codes && codes.length) submitPayload(codes[0].rawValue || '');
     }).catch(function () {}).finally(function () {
-      if (scanning) setTimeout(scanLoop, 140);
+      if (scanning) setTimeout(scanLoop, 180);
     });
   }
 
@@ -267,11 +294,9 @@ $stats = guestbook_stats($inv['slug']);
       })
       .then(function () {
         placeholder.style.display = 'none';
-        if (detector) {
-          scanning = true;
-          setResult('loading', 'Scanner aktif', 'Arahkan QR ke tengah kotak panduan.');
-          scanLoop();
-        }
+        scanning = true;
+        setResult('loading', 'Scanner aktif', 'Arahkan QR ke tengah kotak panduan.');
+        scanLoop();
       })
       .catch(function () {
         setResult('error', 'Kamera gagal dibuka', 'Pastikan izin kamera sudah diberikan pada browser.');
