@@ -9,7 +9,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        index: 'landing-react/index.html',
+        index: 'landing-build-index.html',
       },
     },
   },

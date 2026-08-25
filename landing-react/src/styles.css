@@ -363,8 +363,21 @@ a {
     linear-gradient(180deg, #dff4ff 0%, #f6fcff 100%);
 }
 
+.solutionBand {
+  background:
+    radial-gradient(circle at 82% 12%, rgba(86, 196, 244, .2), transparent 22rem),
+    linear-gradient(180deg, #f7fcff 0%, #e8f8ff 100%);
+}
+
+.guestbookBand {
+  background:
+    radial-gradient(circle at 8% 20%, rgba(22, 136, 199, .16), transparent 20rem),
+    linear-gradient(135deg, #f5fcff 0%, #dff4ff 100%);
+}
+
 .features,
-.steps {
+.steps,
+.useCases {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
@@ -376,7 +389,8 @@ a {
 }
 
 .feature,
-.package {
+.package,
+.useCase {
   border: 1px solid rgba(22, 136, 199, .18);
   border-radius: 8px;
   padding: 20px;
@@ -388,7 +402,8 @@ a {
 }
 
 .feature::before,
-.package::before {
+.package::before,
+.useCase::before {
   content: "";
   position: absolute;
   inset: 0 auto auto 0;
@@ -408,6 +423,7 @@ a {
 
 .feature:hover,
 .package:hover,
+.useCase:hover,
 .templateCard:hover {
   transform: translateY(-6px);
   box-shadow: 0 24px 58px rgba(22, 136, 199, .18);
@@ -415,10 +431,129 @@ a {
 }
 
 .feature b,
-.package b {
+.package b,
+.useCase b {
   display: block;
   font-size: 18px;
   margin-bottom: 6px;
+}
+
+.useCases {
+  margin-top: 28px;
+}
+
+.useCase {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .94), rgba(255, 255, 255, .86)),
+    radial-gradient(circle at top right, rgba(86, 196, 244, .22), transparent 12rem);
+}
+
+.useCase b {
+  font-size: 21px;
+}
+
+.useCase p {
+  margin: 0;
+  color: #2f5f7c;
+}
+
+.guestbookGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 34px;
+  align-items: center;
+}
+
+.guestbookCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(22, 136, 199, .2);
+  border-radius: 8px;
+  padding: 22px;
+  background: rgba(255, 255, 255, .88);
+  box-shadow: 0 24px 58px rgba(22, 136, 199, .14);
+}
+
+.guestbookCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, #1688c7, #56c4f4, transparent);
+}
+
+.scannerFrame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 260px;
+  border: 1px solid rgba(22, 136, 199, .2);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(22, 136, 199, .08), rgba(86, 196, 244, .16)),
+    #f8fdff;
+  overflow: hidden;
+}
+
+.scannerFrame > span {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #1688c7, transparent);
+  box-shadow: 0 0 22px rgba(22, 136, 199, .55);
+  animation: scanLine 3s ease-in-out infinite;
+}
+
+.qrMock {
+  width: 150px;
+  height: 150px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  padding: 18px;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 16px 38px rgba(22, 136, 199, .12);
+}
+
+.qrMock i {
+  border: 10px solid #14324a;
+  border-radius: 5px;
+}
+
+.qrMock i:nth-child(4) {
+  border-width: 0;
+  background:
+    linear-gradient(90deg, #14324a 0 24%, transparent 24% 48%, #14324a 48% 72%, transparent 72%),
+    linear-gradient(#14324a 0 24%, transparent 24% 48%, #14324a 48% 72%, transparent 72%);
+}
+
+.scanRows {
+  padding-top: 18px;
+}
+
+.scanRows b {
+  display: block;
+  font-size: 20px;
+}
+
+.scanRows p,
+.scanRows small {
+  color: #2f5f7c;
+}
+
+.scanRows p {
+  margin: 6px 0;
+}
+
+.scanRows small {
+  display: block;
 }
 
 .templateToolbar {
@@ -784,6 +919,11 @@ a {
   to { transform: translateX(-50%); }
 }
 
+@keyframes scanLine {
+  0%, 100% { top: 22px; opacity: .45; }
+  50% { top: calc(100% - 24px); opacity: 1; }
+}
+
 @keyframes floatA {
   0%, 100% { transform: translate3d(0, 0, 0) rotate(3deg); }
   50% { transform: translate3d(0, -18px, 0) rotate(1deg); }
@@ -838,9 +978,11 @@ a {
   .heroMetrics,
   .features,
   .steps,
+  .useCases,
   .packages,
   .introGrid,
   .ctaGrid,
+  .guestbookGrid,
   .templateToolbar,
   .templateGrid {
     grid-template-columns: 1fr;
@@ -860,6 +1002,11 @@ a {
 
   .templateThumb {
     height: 520px;
+  }
+
+  .guestbookCard {
+    width: min(100%, 430px);
+    margin: auto;
   }
 
   .showcaseTrack img {

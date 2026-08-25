@@ -65,10 +65,12 @@ function App() {
           </a>
           <div className="navLinks">
             <a href="#fitur">Fitur</a>
+            <a href="#solusi">Solusi</a>
             <a href="#template">Template</a>
+            <a href="#guestbook">Guestbook</a>
             <a href="#harga">Harga</a>
           </div>
-          <a className="navCta" href="#harga">Mulai Pesan</a>
+          <a className="navCta" href="#harga">Konsultasi</a>
         </div>
       </nav>
 
@@ -98,17 +100,17 @@ function App() {
           })}
         </div>
         <div className="wrap heroContent">
-          <span className="eyebrow">Undangan digital siap sebar</span>
+          <span className="eyebrow">Platform undangan digital profesional</span>
           <h1>D-Webin Digital Invitation</h1>
-          <p>Landing undangan pernikahan yang elegan, cepat dibagikan, dan mudah dikelola dari dashboard. Katalog template kini berbasis React, ringan, dan siap menampung koleksi yang terus bertambah.</p>
+          <p>Solusi undangan digital untuk pernikahan, wisuda, acara perusahaan, seminar, dan berbagai agenda resmi. Setiap undangan dapat dikelola melalui dashboard, dibagikan secara personal, serta dikembangkan dengan sistem guestbook web untuk proses scan dan validasi kehadiran.</p>
           <div className="heroActions">
             <a className="btn primary" href="#template">Lihat Template</a>
-            <a className="btn ghost" href="#harga">Cek Harga</a>
+            <a className="btn ghost" href="#guestbook">Lihat Guestbook</a>
           </div>
           <div className="heroMetrics">
             <div><b>{loading ? '...' : data.template_count}</b><span>template siap pakai</span></div>
             <div><b>{groups.length || '...'}</b><span>kategori desain</span></div>
-            <div><b>Unlimited</b><span>link tamu personal</span></div>
+            <div><b>QR Scan</b><span>validasi kehadiran</span></div>
           </div>
           <div className="heroTicker" aria-label="Kategori template">
             {groups.map((group) => <span key={group.key}>{group.label} - {group.price_label}</span>)}
@@ -119,19 +121,32 @@ function App() {
       <section className="intro">
         <div className="wrap introGrid">
           <div>
-            <span className="sectionKicker">Untuk acara yang berasa personal</span>
-            <h2 className="sectionTitle">Bagikan undangan yang terlihat matang sejak link pertama dibuka.</h2>
+            <span className="sectionKicker">Untuk berbagai kebutuhan acara</span>
+            <h2 className="sectionTitle">Undangan digital yang rapi, personal, dan siap digunakan secara profesional.</h2>
           </div>
-          <p className="lead">D-Webin membantu kamu membuat undangan digital dengan template premium, nama tamu otomatis, pengelolaan daftar tamu, dan export/import CSV untuk operasional yang lebih cepat.</p>
+          <p className="lead">D-Webin membantu penyelenggara acara menyiapkan undangan digital dengan tampilan yang representatif, tautan personal untuk setiap tamu, pengelolaan data undangan, serta dukungan import dan export tamu untuk kebutuhan operasional.</p>
         </div>
       </section>
 
       <section id="fitur" className="band cream">
         <div className="wrap features">
-          <Feature number="01" title="Nama tamu personal" text="Setiap tamu bisa menerima link dengan sapaan khusus." />
-          <Feature number="02" title="Template per kategori" text="Pilih gaya Animation, Minimalist, Luxury, Graduation, atau Vintage sesuai konsep acara." />
-          <Feature number="03" title="Kelola tamu" text="Tambah manual, import CSV, export data, dan salin link personal." />
-          <Feature number="04" title="Preview cepat" text="Landing hanya memuat thumbnail real, bukan iframe template berat." />
+          <Feature number="01" title="Tautan tamu personal" text="Setiap tamu dapat menerima tautan undangan dengan sapaan dan parameter undangan masing-masing." />
+          <Feature number="02" title="Template per kategori" text="Katalog dapat dikelompokkan untuk pernikahan, graduation, corporate event, seminar, dan kategori acara lainnya." />
+          <Feature number="03" title="Pengelolaan tamu" text="Admin dapat menambahkan data tamu, melakukan import CSV, export data, serta menyalin pesan undangan." />
+          <Feature number="04" title="Siap dikembangkan" text="Sistem dapat dilengkapi guestbook web untuk scan QR undangan dan pencatatan kehadiran acara." />
+        </div>
+      </section>
+
+      <section id="solusi" className="band solutionBand">
+        <div className="wrap">
+          <span className="sectionKicker">Kategori solusi</span>
+          <h2 className="sectionTitle">Satu platform untuk beragam agenda.</h2>
+          <div className="useCases">
+            <UseCase title="Wedding Invitation" text="Undangan pernikahan digital dengan tampilan elegan, nama tamu personal, detail acara, galeri, peta lokasi, dan pesan WhatsApp siap kirim." />
+            <UseCase title="Graduation Invitation" text="Undangan wisuda atau graduation ceremony dengan konsep formal, informasi institusi, jadwal acara, dan akses berbasis QR invitation pass." />
+            <UseCase title="Corporate Event" text="Undangan untuk gathering, launching, anniversary perusahaan, dan agenda internal dengan identitas acara yang profesional." />
+            <UseCase title="Seminar & Workshop" text="Undangan seminar, pelatihan, dan workshop yang dapat dilengkapi data peserta, sesi acara, lokasi, serta validasi kehadiran." />
+          </div>
         </div>
       </section>
 
@@ -187,9 +202,32 @@ function App() {
           <span className="sectionKicker">Alur kerja</span>
           <h2 className="sectionTitle">Dari data acara ke link siap sebar.</h2>
           <div className="steps">
-            <Feature number="01" title="Pilih template" text="Tentukan desain yang paling cocok dengan karakter acara." />
-            <Feature number="02" title="Isi konten" text="Nama pasangan, tanggal, lokasi, foto, video, dan link peta." />
-            <Feature number="03" title="Sebar link" text="Import daftar tamu, salin link personal, lalu kirim ke WhatsApp." />
+            <Feature number="01" title="Pilih template" text="Tentukan kategori dan desain yang sesuai dengan kebutuhan acara." />
+            <Feature number="02" title="Lengkapi konten" text="Masukkan informasi acara, jadwal, lokasi, media pendukung, dan pengaturan tamu." />
+            <Feature number="03" title="Sebarkan undangan" text="Import daftar tamu, salin tautan personal, lalu kirimkan undangan melalui WhatsApp." />
+          </div>
+        </div>
+      </section>
+
+      <section id="guestbook" className="band guestbookBand">
+        <div className="wrap guestbookGrid">
+          <div>
+            <span className="sectionKicker">Guestbook web</span>
+            <h2 className="sectionTitle">Scan undangan untuk validasi kehadiran.</h2>
+            <p className="lead">Fitur guestbook web disiapkan untuk membantu panitia memindai QR atau tautan undangan tamu saat acara berlangsung. Data check-in dapat digunakan untuk memastikan tamu terdaftar, memantau kehadiran, dan merapikan proses registrasi di lokasi acara.</p>
+          </div>
+          <div className="guestbookCard" aria-label="Ilustrasi guestbook web">
+            <div className="scannerFrame">
+              <span></span>
+              <div className="qrMock">
+                <i></i><i></i><i></i><i></i>
+              </div>
+            </div>
+            <div className="scanRows">
+              <b>Status Kehadiran</b>
+              <p>Tamu terverifikasi melalui scan undangan.</p>
+              <small>Guestbook web akan mendukung pencatatan check-in secara lebih tertata.</small>
+            </div>
           </div>
         </div>
       </section>
@@ -213,8 +251,8 @@ function App() {
               <article className={`package ${group.key === 'animation' ? 'highlight' : ''}`} key={group.key}>
                 <b>{group.label}</b>
                 <div className="price">{group.price_label}</div>
-                <p>{group.template_count ? 'Template siap pakai dengan nama tamu personal dan dashboard pengelolaan.' : 'Kategori disiapkan untuk koleksi template berikutnya.'}</p>
-                <div className="list"><div>Nama tamu personal</div><div>Kelola tamu + import CSV</div><div>Preview sebelum publish</div></div>
+                <p>{group.template_count ? 'Template siap digunakan dengan tautan tamu personal dan dashboard pengelolaan.' : 'Kategori disiapkan untuk koleksi template berikutnya.'}</p>
+                <div className="list"><div>Tautan tamu personal</div><div>Kelola tamu + import CSV</div><div>Preview sebelum publish</div></div>
               </article>
             ))}
           </div>
@@ -223,8 +261,8 @@ function App() {
 
       <section className="cta">
         <div className="wrap ctaGrid">
-          <div><h2>Siap bikin undangan yang enak dibuka dan mudah disebar?</h2><p>Kirim brief acara, pilih template, lalu biarkan dashboard D-Webin yang merapikan sisanya.</p></div>
-          <a className="btn primary" href="mailto:halo@d-webindigital.web.id?subject=Pesan%20Undangan%20Digital%20D-Webin">Konsultasi Sekarang</a>
+          <div><h2>Siap menyiapkan undangan digital untuk acara berikutnya?</h2><p>Kirim kebutuhan acara, pilih kategori template, dan D-Webin akan membantu menyiapkan undangan digital yang rapi, personal, serta siap dikembangkan dengan guestbook web.</p></div>
+          <a className="btn primary" href="mailto:halo@d-webindigital.web.id?subject=Konsultasi%20Undangan%20Digital%20D-Webin">Konsultasi Sekarang</a>
         </div>
       </section>
       <footer className="footer"><div className="wrap"><span>D-Webin Digital Invitation</span><a href="/admin/login.php">Admin</a></div></footer>
@@ -234,6 +272,10 @@ function App() {
 
 function Feature({ number, title, text }) {
   return <article className="feature">{number && <span>{number}</span>}<b>{title}</b><p>{text}</p></article>;
+}
+
+function UseCase({ title, text }) {
+  return <article className="useCase"><b>{title}</b><p>{text}</p></article>;
 }
 
 function TemplateCard({ template, index }) {

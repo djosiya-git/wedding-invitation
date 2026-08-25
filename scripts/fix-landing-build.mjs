@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, renameSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 
-const builtHtml = join('landing-dist', 'landing-react', 'index.html');
+const builtHtml = join('landing-dist', 'landing-build-index.html');
 const finalHtml = join('landing-dist', 'index.html');
 
 if (!existsSync(builtHtml)) {
