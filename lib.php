@@ -752,13 +752,136 @@ HTML;
 function guest_qr_svg(string $text): string {
     $logoPath = __DIR__.'/assets/brand/d-webin-logo.svg';
     $logo = is_file($logoPath) ? base64_encode((string)file_get_contents($logoPath)) : '';
-    return square_code128_svg($text, $logo);
+    return qr_svg($text, $logo);
 }
-function square_code128_svg(string $text, string $logo = ''): string {
-    $barcode = code128_svg($text);
-    $encoded = base64_encode($barcode);
-    $logoImage = $logo !== '' ? '<rect x="132" y="54" width="76" height="76" rx="20" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="145" y="67" width="50" height="50"/>' : '';
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340" viewBox="0 0 340 340" role="img" aria-label="'.e($text).'"><rect width="340" height="340" rx="28" fill="#fff"/><rect x="22" y="22" width="296" height="296" rx="24" fill="#f8fcff" stroke="#dceaf3"/>'.$logoImage.'<image href="data:image/svg+xml;base64,'.$encoded.'" x="34" y="158" width="272" height="76"/><text x="170" y="272" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" fill="#68788a">'.e($text).'</text></svg>';
+function qr_svg(string $text, string $logo = ''): string {
+    $size = 33;
+    $modules = qr_matrix_v4_l($text);
+    if (!$modules) return code128_svg($text);
+    $cell = 8;
+    $quiet = 18;
+    $imageSize = $size * $cell + ($quiet * 2);
+    $bars = '';
+    for ($y = 0; $y < $size; $y++) {
+        for ($x = 0; $x < $size; $x++) {
+            if (!empty($modules[$y][$x])) {
+                $bars .= '<rect x="'.($quiet + $x * $cell).'" y="'.($quiet + $y * $cell).'" width="'.$cell.'" height="'.$cell.'" fill="#111"/>';
+            }
+        }
+    }
+    $logoImage = $logo !== '' ? '<rect x="139" y="139" width="62" height="62" rx="16" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="150" y="150" width="40" height="40"/>' : '';
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340" viewBox="0 0 340 340" role="img" aria-label="'.e($text).'"><rect width="340" height="340" rx="28" fill="#fff"/><rect x="14" y="14" width="312" height="312" rx="22" fill="#fff" stroke="#dceaf3"/>'.$bars.$logoImage.'</svg>';
+}
+function qr_matrix_v4_l(string $text): array {
+    $bytes = array_values(unpack('C*', $text) ?: []);
+    if (count($bytes) > 78) return [];
+    $bits = '0100'.str_pad(decbin(count($bytes)), 8, '0', STR_PAD_LEFT);
+    foreach ($bytes as $byte) $bits .= str_pad(decbin($byte), 8, '0', STR_PAD_LEFT);
+    $bits .= str_repeat('0', min(4, 640 - strlen($bits)));
+    while (strlen($bits) % 8) $bits .= '0';
+    $data = [];
+    for ($i = 0; $i < strlen($bits); $i += 8) $data[] = bindec(substr($bits, $i, 8));
+    for ($pad = 0; count($data) < 80; $pad ^= 1) $data[] = $pad ? 0x11 : 0xEC;
+    $codewords = array_merge($data, qr_rs_ecc($data, 20));
+
+    $size = 33;
+    $m = array_fill(0, $size, array_fill(0, $size, 0));
+    $r = array_fill(0, $size, array_fill(0, $size, false));
+    $set = function (int $x, int $y, int $v, bool $reserved = true) use (&$m, &$r, $size): void {
+        if ($x < 0 || $y < 0 || $x >= $size || $y >= $size) return;
+        $m[$y][$x] = $v ? 1 : 0;
+        if ($reserved) $r[$y][$x] = true;
+    };
+    $finder = function (int $x, int $y) use (&$set): void {
+        for ($dy = -1; $dy <= 7; $dy++) {
+            for ($dx = -1; $dx <= 7; $dx++) {
+                $xx = $x + $dx; $yy = $y + $dy;
+                $dark = ($dx >= 0 && $dx <= 6 && $dy >= 0 && $dy <= 6 && ($dx === 0 || $dx === 6 || $dy === 0 || $dy === 6 || ($dx >= 2 && $dx <= 4 && $dy >= 2 && $dy <= 4)));
+                $set($xx, $yy, $dark ? 1 : 0);
+            }
+        }
+    };
+    $finder(0, 0); $finder($size - 7, 0); $finder(0, $size - 7);
+    for ($i = 8; $i < $size - 8; $i++) {
+        $set($i, 6, $i % 2 === 0 ? 1 : 0);
+        $set(6, $i, $i % 2 === 0 ? 1 : 0);
+    }
+    for ($dy = -2; $dy <= 2; $dy++) {
+        for ($dx = -2; $dx <= 2; $dx++) {
+            $dark = max(abs($dx), abs($dy)) !== 1;
+            $set(26 + $dx, 26 + $dy, $dark ? 1 : 0);
+        }
+    }
+    $set(8, $size - 8, 1);
+    for ($i = 0; $i < 9; $i++) { $r[8][$i] = true; $r[$i][8] = true; }
+    for ($i = 0; $i < 8; $i++) { $r[$size - 1 - $i][8] = true; $r[8][$size - 1 - $i] = true; }
+
+    $stream = '';
+    foreach ($codewords as $cw) $stream .= str_pad(decbin($cw), 8, '0', STR_PAD_LEFT);
+    $idx = 0;
+    $up = true;
+    for ($x = $size - 1; $x > 0; $x -= 2) {
+        if ($x === 6) $x--;
+        for ($i = 0; $i < $size; $i++) {
+            $y = $up ? $size - 1 - $i : $i;
+            for ($dx = 0; $dx < 2; $dx++) {
+                $xx = $x - $dx;
+                if ($r[$y][$xx]) continue;
+                $bit = $idx < strlen($stream) ? (int)$stream[$idx++] : 0;
+                if ((($xx + $y) % 2) === 0) $bit ^= 1;
+                $m[$y][$xx] = $bit;
+            }
+        }
+        $up = !$up;
+    }
+    $format = qr_format_bits(1, 0);
+    for ($i = 0; $i <= 5; $i++) $set(8, $i, (int)$format[$i]);
+    $set(8, 7, (int)$format[6]); $set(8, 8, (int)$format[7]); $set(7, 8, (int)$format[8]);
+    for ($i = 9; $i < 15; $i++) $set(14 - $i, 8, (int)$format[$i]);
+    for ($i = 0; $i < 8; $i++) $set($size - 1 - $i, 8, (int)$format[$i]);
+    for ($i = 8; $i < 15; $i++) $set(8, $size - 15 + $i, (int)$format[$i]);
+    return $m;
+}
+function qr_format_bits(int $ecl, int $mask): string {
+    $data = ($ecl << 3) | $mask;
+    $bits = $data << 10;
+    for ($i = 14; $i >= 10; $i--) if (($bits >> $i) & 1) $bits ^= 0x537 << ($i - 10);
+    $value = (($data << 10) | $bits) ^ 0x5412;
+    $out = '';
+    for ($i = 0; $i < 15; $i++) $out .= (($value >> $i) & 1) ? '1' : '0';
+    return $out;
+}
+function qr_rs_ecc(array $data, int $degree): array {
+    $gen = [1];
+    for ($i = 0; $i < $degree; $i++) {
+        $next = array_fill(0, count($gen) + 1, 0);
+        foreach ($gen as $j => $coef) {
+            $next[$j] ^= qr_gf_mul($coef, 1);
+            $next[$j + 1] ^= qr_gf_mul($coef, qr_gf_pow(2, $i));
+        }
+        $gen = $next;
+    }
+    $ecc = array_fill(0, $degree, 0);
+    foreach ($data as $byte) {
+        $factor = $byte ^ $ecc[0];
+        array_shift($ecc);
+        $ecc[] = 0;
+        for ($i = 0; $i < $degree; $i++) $ecc[$i] ^= qr_gf_mul($gen[$i + 1], $factor);
+    }
+    return $ecc;
+}
+function qr_gf_mul(int $x, int $y): int {
+    $z = 0;
+    for ($i = 7; $i >= 0; $i--) {
+        $z = (($z << 1) ^ (($z & 0x80) ? 0x11D : 0)) & 0xFF;
+        if (($y >> $i) & 1) $z ^= $x;
+    }
+    return $z;
+}
+function qr_gf_pow(int $x, int $power): int {
+    $result = 1;
+    while ($power-- > 0) $result = qr_gf_mul($result, $x);
+    return $result;
 }
 function code128_svg(string $text): string {
     $patterns = [
