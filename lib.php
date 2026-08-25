@@ -750,32 +750,15 @@ HTML;
     return str_ireplace('</body>', $card.$script.'</body>', $html);
 }
 function guest_qr_svg(string $text): string {
-    $cached = qr_server_png($text);
     $logoPath = __DIR__.'/assets/brand/d-webin-logo.svg';
     $logo = is_file($logoPath) ? base64_encode((string)file_get_contents($logoPath)) : '';
-    if ($cached === '') return square_code128_svg($text, $logo);
-    $safeLabel = e($text);
-    $image = e('data:image/png;base64,'.$cached);
-    $logoImage = $logo !== '' ? '<rect x="132" y="132" width="76" height="76" rx="20" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="145" y="145" width="50" height="50"/>' : '';
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340" viewBox="0 0 340 340" role="img" aria-label="'.$safeLabel.'"><rect width="340" height="340" rx="28" fill="#fff"/><image href="'.$image.'" x="0" y="0" width="340" height="340"/>'.$logoImage.'</svg>';
-}
-function qr_server_png(string $text): string {
-    $cacheDir = __DIR__.'/storage/barcodes';
-    if (!is_dir($cacheDir)) @mkdir($cacheDir, 0775, true);
-    $cache = $cacheDir.'/'.sha1($text).'.png';
-    if (is_file($cache)) return base64_encode((string)file_get_contents($cache));
-    $url = 'https://api.qrserver.com/v1/create-qr-code/?size=340x340&ecc=H&margin=12&data='.rawurlencode($text);
-    $context = stream_context_create(['http' => ['timeout' => 4], 'ssl' => ['verify_peer' => true, 'verify_peer_name' => true]]);
-    $png = @file_get_contents($url, false, $context);
-    if (!is_string($png) || substr($png, 0, 8) !== "\x89PNG\r\n\x1a\n") return '';
-    @file_put_contents($cache, $png);
-    return base64_encode($png);
+    return square_code128_svg($text, $logo);
 }
 function square_code128_svg(string $text, string $logo = ''): string {
     $barcode = code128_svg($text);
     $encoded = base64_encode($barcode);
-    $logoImage = $logo !== '' ? '<rect x="132" y="132" width="76" height="76" rx="20" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="145" y="145" width="50" height="50"/>' : '';
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340" viewBox="0 0 340 340" role="img" aria-label="'.e($text).'"><rect width="340" height="340" rx="28" fill="#fff"/><image href="data:image/svg+xml;base64,'.$encoded.'" x="30" y="132" width="280" height="76"/>'.$logoImage.'</svg>';
+    $logoImage = $logo !== '' ? '<rect x="132" y="54" width="76" height="76" rx="20" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="145" y="67" width="50" height="50"/>' : '';
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340" viewBox="0 0 340 340" role="img" aria-label="'.e($text).'"><rect width="340" height="340" rx="28" fill="#fff"/><rect x="22" y="22" width="296" height="296" rx="24" fill="#f8fcff" stroke="#dceaf3"/>'.$logoImage.'<image href="data:image/svg+xml;base64,'.$encoded.'" x="34" y="158" width="272" height="76"/><text x="170" y="272" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="14" font-weight="700" fill="#68788a">'.e($text).'</text></svg>';
 }
 function code128_svg(string $text): string {
     $patterns = [
