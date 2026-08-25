@@ -1072,6 +1072,26 @@ td small {
   min-width: 900px;
 }
 
+.guestbook-attendance-panel .guestbook-table table {
+  min-width: 0;
+}
+
+.guestbook-attendance-panel .table-wrap {
+  max-height: 720px;
+}
+
+.guestbook-attendance-panel tbody tr:first-child td {
+  background: #f8fdff;
+}
+
+.guestbook-attendance-panel td:first-child b {
+  font-size: 15px;
+}
+
+.is-hidden {
+  display: none;
+}
+
 .badge.checked-in {
   background: var(--success-soft);
   color: var(--success);
@@ -1088,6 +1108,13 @@ td small {
   gap: 20px;
   align-items: start;
   margin-bottom: 22px;
+}
+
+.guestbook-event-grid {
+  display: grid;
+  grid-template-columns: minmax(420px, 1.05fr) minmax(340px, .95fr);
+  gap: 20px;
+  align-items: start;
 }
 
 .scanner-panel,
@@ -1163,6 +1190,10 @@ td small {
   display: block;
   margin-top: 12px;
   color: var(--muted);
+}
+
+.scanner-manual-form {
+  margin-top: 16px;
 }
 
 .scan-result {
@@ -1245,6 +1276,10 @@ td small {
   }
 
   .guestbook-scan-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .guestbook-event-grid {
     grid-template-columns: 1fr;
   }
 }

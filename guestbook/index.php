@@ -2,6 +2,7 @@
 require __DIR__.'/../lib.php';
 $inv = require_guestbook_customer();
 $guests = all_guests($inv['slug']);
+$checkedGuests = array_values(array_filter($guests, fn($guest) => !empty($guest['checked_in_at'])));
 $stats = guestbook_stats($inv['slug']);
 ?>
 <!doctype html>
@@ -37,12 +38,12 @@ $stats = guestbook_stats($inv['slug']);
     <div><b id="statRemaining"><?=e((string)$stats['remaining'])?></b><span>Belum hadir</span></div>
   </section>
 
-  <section class="guestbook-scan-grid" id="scanner">
+  <section class="guestbook-event-grid" id="scanner">
     <div class="panel scanner-panel">
       <div class="panel-head">
         <div>
-          <h2>Kamera Scanner</h2>
-          <p class="panel-note">Arahkan kamera handphone ke QR atau barcode undangan tamu.</p>
+          <h2>Scan & Validasi Tamu</h2>
+          <p class="panel-note">Arahkan kamera ke QR undangan, atau masukkan kode/link secara manual.</p>
         </div>
       </div>
       <div class="camera-shell">
@@ -54,17 +55,8 @@ $stats = guestbook_stats($inv['slug']);
         <button class="btn primary" type="button" id="startScanner">Aktifkan Kamera</button>
         <button class="btn" type="button" id="stopScanner">Matikan Kamera</button>
       </div>
-      <small class="scanner-help">Jika browser belum mendukung scanner otomatis, hasil scan bisa dimasukkan manual di sebelah.</small>
-    </div>
 
-    <div class="panel checkin-panel">
-      <div class="panel-head">
-        <div>
-          <h2>Validasi Tamu</h2>
-          <p class="panel-note">Masukkan link undangan, ID tamu, atau kode tamu.</p>
-        </div>
-      </div>
-      <form id="manualForm" class="form">
+      <form id="manualForm" class="form scanner-manual-form">
         <label>Kode / Link Undangan
           <textarea id="manualPayload" rows="5" placeholder="Contoh: https://.../view.php?slug=...&guest=5"></textarea>
         </label>
@@ -74,45 +66,48 @@ $stats = guestbook_stats($inv['slug']);
         <b>Menunggu scan</b>
         <p>Data tamu akan muncul setelah kode berhasil divalidasi.</p>
       </div>
+      <small class="scanner-help">Jika browser belum mendukung scanner otomatis, gunakan input manual di bawah kamera.</small>
     </div>
+
+    <section class="panel guestbook-attendance-panel">
+      <div class="panel-head">
+        <div>
+          <h2>Daftar Hadir</h2>
+          <p class="panel-note">Hanya menampilkan tamu yang sudah berhasil check-in.</p>
+        </div>
+      </div>
+      <?php if(!$checkedGuests): ?>
+        <div class="empty" id="attendanceEmpty">Belum ada tamu yang hadir.</div>
+      <?php else: ?>
+        <div class="table-wrap guestbook-table" id="attendanceWrap">
+          <table>
+            <thead>
+              <tr><th>Nama</th><th>Waktu</th></tr>
+            </thead>
+            <tbody id="attendanceRows">
+              <?php foreach($checkedGuests as $guest): ?>
+                <tr data-guest-id="<?=(int)$guest['id']?>">
+                  <td><b><?=e($guest['name'])?></b></td>
+                  <td><small><?=e(format_datetime_label($guest['checked_in_at']))?></small></td>
+                </tr>
+              <?php endforeach ?>
+            </tbody>
+          </table>
+        </div>
+      <?php endif ?>
+      <?php if(!$checkedGuests): ?>
+        <div class="table-wrap guestbook-table is-hidden" id="attendanceWrap">
+          <table>
+            <thead>
+              <tr><th>Nama</th><th>Waktu</th></tr>
+            </thead>
+            <tbody id="attendanceRows"></tbody>
+          </table>
+        </div>
+      <?php endif ?>
+    </section>
   </section>
 
-  <section class="panel">
-    <div class="panel-head">
-      <div>
-        <h2>Daftar Tamu</h2>
-        <p class="panel-note">Data tamu yang tampil mengikuti akun pelanggan yang sedang login.</p>
-      </div>
-    </div>
-    <?php if(!$guests): ?>
-      <div class="empty">Belum ada data tamu untuk undangan ini.</div>
-    <?php else: ?>
-      <div class="table-wrap guestbook-table">
-        <table>
-          <thead>
-            <tr><th>Nama</th><th>Grup</th><th>Kode</th><th>Status Check-in</th><th>Waktu</th></tr>
-          </thead>
-          <tbody>
-            <?php foreach($guests as $guest): ?>
-              <tr>
-                <td><b><?=e($guest['name'])?></b><br><small><?=e($guest['phone'] ?? '')?></small></td>
-                <td><?=e($guest['group_label'] ?? '')?></td>
-                <td><code><?=e(guest_checkin_code($inv, $guest))?></code></td>
-                <td>
-                  <?php if(!empty($guest['checked_in_at'])): ?>
-                    <span class="badge checked-in">Hadir</span>
-                  <?php else: ?>
-                    <span class="badge pending-checkin">Belum hadir</span>
-                  <?php endif ?>
-                </td>
-                <td><small><?=e(!empty($guest['checked_in_at']) ? format_datetime_label($guest['checked_in_at']) : '-')?></small></td>
-              </tr>
-            <?php endforeach ?>
-          </tbody>
-        </table>
-      </div>
-    <?php endif ?>
-  </section>
 </main>
 <script>
 (function () {
@@ -125,6 +120,9 @@ $stats = guestbook_stats($inv['slug']);
   var resultBox = document.getElementById('scanResult');
   var checkedStat = document.getElementById('statChecked');
   var remainingStat = document.getElementById('statRemaining');
+  var attendanceRows = document.getElementById('attendanceRows');
+  var attendanceWrap = document.getElementById('attendanceWrap');
+  var attendanceEmpty = document.getElementById('attendanceEmpty');
   var stream = null;
   var detector = null;
   var scanning = false;
@@ -140,6 +138,28 @@ $stats = guestbook_stats($inv['slug']);
     if (!stats) return;
     if (checkedStat) checkedStat.textContent = stats.checked_in;
     if (remainingStat) remainingStat.textContent = stats.remaining;
+  }
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/[&<>"']/g, function (char) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[char];
+    });
+  }
+
+  function upsertAttendance(guest) {
+    if (!attendanceRows || !guest || !guest.id) return;
+    if (attendanceEmpty) attendanceEmpty.style.display = 'none';
+    if (attendanceWrap) attendanceWrap.classList.remove('is-hidden');
+    var existing = attendanceRows.querySelector('[data-guest-id="' + guest.id + '"]');
+    var html = '<td><b>' + escapeHtml(guest.name) + '</b></td><td><small>' + escapeHtml(guest.checked_in_label || '-') + '</small></td>';
+    if (existing) {
+      existing.innerHTML = html;
+      return;
+    }
+    var row = document.createElement('tr');
+    row.setAttribute('data-guest-id', guest.id);
+    row.innerHTML = html;
+    attendanceRows.insertBefore(row, attendanceRows.firstChild);
   }
 
   function submitPayload(payload) {
@@ -167,6 +187,7 @@ $stats = guestbook_stats($inv['slug']);
         var guest = data.guest || {};
         var detail = guest.group_label ? guest.group_label + ' - ' + guest.checked_in_label : guest.checked_in_label;
         updateStats(data.stats);
+        upsertAttendance(guest);
         setResult(data.status === 'already_checked_in' ? 'warning' : 'success', guest.name || 'Tamu valid', data.message, detail);
       })
       .catch(function (err) {
