@@ -716,7 +716,7 @@ function apply_guest_barcode(string $html, array $inv, ?array $guest): string {
     $barcodeUrl = guest_barcode_url($inv, $guest);
     $css = <<<'HTML'
 <style id="dwebin-guest-barcode-style">
-.dwebin-barcode-trigger{position:fixed;right:18px;bottom:92px;z-index:99998;display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(15,111,165,.24);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:0 14px 34px rgba(12,57,86,.18);backdrop-filter:blur(14px);cursor:pointer;padding:0}.dwebin-barcode-trigger svg{width:24px;height:24px;display:block}.dwebin-barcode-trigger:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(12,57,86,.23)}.dwebin-barcode-modal{position:fixed;inset:0;z-index:100000;display:none;place-items:center;padding:22px;background:rgba(7,27,40,.58);backdrop-filter:blur(8px)}.dwebin-barcode-modal.is-open{display:grid}.dwebin-barcode-card{width:min(340px,calc(100vw - 44px));border:1px solid rgba(15,111,165,.24);border-radius:24px;background:#fff;box-shadow:0 24px 70px rgba(7,27,40,.28);padding:18px;text-align:center;font-family:Arial,Helvetica,sans-serif;color:#172636}.dwebin-barcode-card h3{margin:0 0 12px!important;font:800 16px/1.2 Arial,Helvetica,sans-serif!important;color:#0f6fa5!important}.dwebin-barcode-card img{display:block;width:100%;aspect-ratio:1/1;height:auto;border-radius:18px;background:#fff}.dwebin-barcode-card span{display:block;margin-top:10px;font-size:12px;font-weight:800;color:#68788a;word-break:break-all}.dwebin-barcode-close{margin-top:14px;width:100%;min-height:42px;border:0;border-radius:14px;background:#0f6fa5;color:#fff;font:800 14px/1 Arial,Helvetica,sans-serif;cursor:pointer}@media(max-width:640px){.dwebin-barcode-trigger{right:12px;bottom:82px;width:44px;height:44px;border-radius:14px}.dwebin-barcode-card{width:min(310px,calc(100vw - 34px));padding:14px;border-radius:20px}}
+.dwebin-barcode-trigger{position:fixed;right:18px;bottom:92px;z-index:99998;display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(15,111,165,.24);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:0 14px 34px rgba(12,57,86,.18);backdrop-filter:blur(14px);cursor:pointer;padding:0}.dwebin-barcode-trigger svg{width:24px;height:24px;display:block}.dwebin-barcode-trigger:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(12,57,86,.23)}.dwebin-barcode-modal{position:fixed;inset:0;z-index:100000;display:none;place-items:center;padding:18px;background:rgba(7,27,40,.58);backdrop-filter:blur(8px)}.dwebin-barcode-modal.is-open{display:grid}.dwebin-barcode-card{width:min(376px,calc(100vw - 34px));border:1px solid rgba(15,111,165,.24);border-radius:24px;background:#fff;box-shadow:0 24px 70px rgba(7,27,40,.28);padding:16px;text-align:center;font-family:Arial,Helvetica,sans-serif;color:#172636}.dwebin-barcode-card h3{margin:0 0 10px!important;font:800 16px/1.2 Arial,Helvetica,sans-serif!important;color:#0f6fa5!important}.dwebin-barcode-card img{display:block;width:100%;aspect-ratio:1/1;height:auto;border-radius:12px;background:#fff}.dwebin-barcode-card span{display:block;margin-top:10px;font-size:12px;font-weight:800;color:#68788a;word-break:break-all}.dwebin-barcode-close{margin-top:14px;width:100%;min-height:42px;border:0;border-radius:14px;background:#0f6fa5;color:#fff;font:800 14px/1 Arial,Helvetica,sans-serif;cursor:pointer}@media(max-width:640px){.dwebin-barcode-trigger{right:12px;bottom:82px;width:44px;height:44px;border-radius:14px}.dwebin-barcode-card{width:min(340px,calc(100vw - 28px));padding:12px;border-radius:20px}}
 </style>
 HTML;
     $script = <<<'HTML'
@@ -758,9 +758,8 @@ function qr_svg(string $text, string $logo = ''): string {
     $size = 33;
     $modules = qr_matrix_v4_l($text);
     if (!$modules) return code128_svg($text);
-    $cell = 8;
-    $quiet = 18;
-    $imageSize = $size * $cell + ($quiet * 2);
+    $cell = 9;
+    $quiet = 16;
     $bars = '';
     for ($y = 0; $y < $size; $y++) {
         for ($x = 0; $x < $size; $x++) {
@@ -769,8 +768,8 @@ function qr_svg(string $text, string $logo = ''): string {
             }
         }
     }
-    $logoImage = $logo !== '' ? '<rect x="139" y="139" width="62" height="62" rx="16" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="150" y="150" width="40" height="40"/>' : '';
-    return '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340" viewBox="0 0 340 340" role="img" aria-label="'.e($text).'"><rect width="340" height="340" rx="28" fill="#fff"/><rect x="14" y="14" width="312" height="312" rx="22" fill="#fff" stroke="#dceaf3"/>'.$bars.$logoImage.'</svg>';
+    $logoImage = $logo !== '' ? '<rect x="140" y="140" width="60" height="60" rx="15" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="151" y="151" width="38" height="38"/>' : '';
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340" viewBox="0 0 340 340" role="img" aria-label="'.e($text).'"><rect width="340" height="340" rx="20" fill="#fff"/>'.$bars.$logoImage.'</svg>';
 }
 function qr_matrix_v4_l(string $text): array {
     $bytes = array_values(unpack('C*', $text) ?: []);
