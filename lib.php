@@ -768,7 +768,7 @@ function qr_svg(string $text, string $logo = ''): string {
             }
         }
     }
-    $logoImage = $logo !== '' ? '<rect x="140" y="140" width="60" height="60" rx="15" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="151" y="151" width="38" height="38"/>' : '';
+    $logoImage = $logo !== '' ? '<rect x="148" y="148" width="44" height="44" rx="12" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="156" y="156" width="28" height="28"/>' : '';
     return '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340" viewBox="0 0 340 340" role="img" aria-label="'.e($text).'"><rect width="340" height="340" rx="20" fill="#fff"/>'.$bars.$logoImage.'</svg>';
 }
 function qr_matrix_v4_l(string $text): array {

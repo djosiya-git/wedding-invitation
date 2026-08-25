@@ -66,7 +66,7 @@ $stats = guestbook_stats($inv['slug']);
         <b>Menunggu scan</b>
         <p>Data tamu akan muncul setelah kode berhasil divalidasi.</p>
       </div>
-      <small class="scanner-help">Jika browser belum mendukung scanner otomatis, gunakan input manual di bawah kamera.</small>
+      <small class="scanner-help">Jika QR tidak terbaca otomatis, masukkan kode/link undangan secara manual di bawah kamera.</small>
     </div>
 
     <section class="panel guestbook-attendance-panel">
@@ -197,11 +197,54 @@ $stats = guestbook_stats($inv['slug']);
 
   function scanLoop() {
     if (!scanning || !detector) return;
+    if (video.readyState < 2) {
+      setTimeout(scanLoop, 120);
+      return;
+    }
     detector.detect(video).then(function (codes) {
       if (codes && codes.length) submitPayload(codes[0].rawValue || '');
     }).catch(function () {}).finally(function () {
-      if (scanning) requestAnimationFrame(scanLoop);
+      if (scanning) setTimeout(scanLoop, 140);
     });
+  }
+
+  function stopCamera() {
+    scanning = false;
+    if (stream) stream.getTracks().forEach(function (track) { track.stop(); });
+    stream = null;
+    video.srcObject = null;
+    placeholder.style.display = 'grid';
+  }
+
+  function makeDetector() {
+    var desired = ['qr_code', 'code_128'];
+    if (!('BarcodeDetector' in window)) {
+      setResult('warning', 'Scanner otomatis belum didukung', 'Gunakan Chrome atau Edge terbaru, atau masukkan kode/link secara manual.');
+      return Promise.resolve(null);
+    }
+    if (typeof BarcodeDetector.getSupportedFormats === 'function') {
+      return BarcodeDetector.getSupportedFormats().then(function (supported) {
+        var formats = desired.filter(function (format) { return supported.indexOf(format) !== -1; });
+        if (!formats.length) {
+          setResult('warning', 'Format QR belum didukung', 'Browser ini belum bisa membaca QR otomatis. Gunakan Chrome atau Edge terbaru, atau input manual.');
+          return null;
+        }
+        return new BarcodeDetector({ formats: formats });
+      }).catch(function () {
+        return new BarcodeDetector({ formats: desired });
+      });
+    }
+    return Promise.resolve(new BarcodeDetector({ formats: desired }));
+  }
+
+  function openCamera(preferBackCamera) {
+    var videoConstraint = preferBackCamera
+      ? { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }
+      : { width: { ideal: 1280 }, height: { ideal: 720 } };
+    return navigator.mediaDevices.getUserMedia({ video: videoConstraint, audio: false })
+      .catch(function () {
+        return navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      });
   }
 
   startButton.addEventListener('click', function () {
@@ -209,34 +252,33 @@ $stats = guestbook_stats($inv['slug']);
       setResult('error', 'Kamera tidak tersedia', 'Browser ini belum mendukung akses kamera.');
       return;
     }
-    if (!('BarcodeDetector' in window)) {
-      setResult('warning', 'Scanner otomatis belum didukung', 'Kamera tetap dapat digunakan, namun kode perlu dimasukkan secara manual.');
-    } else {
-      detector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'code_39', 'ean_13'] });
-    }
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
+    stopCamera();
+    setResult('loading', 'Membuka kamera', 'Dekatkan QR ke kamera dan pastikan pencahayaan cukup.');
+    makeDetector()
+      .then(function (createdDetector) {
+        detector = createdDetector;
+        return openCamera(true);
+      })
       .then(function (mediaStream) {
         stream = mediaStream;
         video.srcObject = stream;
+        video.setAttribute('autoplay', '');
         return video.play();
       })
       .then(function () {
         placeholder.style.display = 'none';
-        scanning = !!detector;
-        if (scanning) scanLoop();
+        if (detector) {
+          scanning = true;
+          setResult('loading', 'Scanner aktif', 'Arahkan QR ke tengah kotak panduan.');
+          scanLoop();
+        }
       })
       .catch(function () {
         setResult('error', 'Kamera gagal dibuka', 'Pastikan izin kamera sudah diberikan pada browser.');
       });
   });
 
-  stopButton.addEventListener('click', function () {
-    scanning = false;
-    if (stream) stream.getTracks().forEach(function (track) { track.stop(); });
-    stream = null;
-    video.srcObject = null;
-    placeholder.style.display = 'grid';
-  });
+  stopButton.addEventListener('click', stopCamera);
 
   form.addEventListener('submit', function (event) {
     event.preventDefault();
