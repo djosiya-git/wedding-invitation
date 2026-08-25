@@ -222,6 +222,30 @@ function App() {
         </div>
       </section>
 
+      <section className="band faqBand" id="faq">
+        <div className="wrap faqGrid">
+          <div>
+            <span className="sectionKicker">Informasi layanan</span>
+            <h2 className="sectionTitle">Jasa undangan digital untuk acara yang tertata.</h2>
+            <p className="lead">D-Webin Digital Invitation membantu kebutuhan undangan digital dari tahap pemilihan template, pengisian informasi acara, pengelolaan daftar tamu, hingga opsi guestbook web untuk validasi kehadiran.</p>
+          </div>
+          <div className="faqList">
+            <article>
+              <b>Apa itu undangan digital D-Webin?</b>
+              <p>D-Webin Digital Invitation adalah layanan pembuatan undangan digital profesional untuk pernikahan, wisuda, corporate event, seminar, dan acara resmi lain dengan template siap pakai.</p>
+            </article>
+            <article>
+              <b>Apakah undangan digital bisa memakai scan QR?</b>
+              <p>Bisa. Undangan dapat dilengkapi guestbook web untuk scan QR, validasi tamu, dan pencatatan waktu kehadiran saat acara berlangsung.</p>
+            </article>
+            <article>
+              <b>Apakah daftar tamu bisa diimport dan diexport?</b>
+              <p>Bisa. Dashboard mendukung tambah tamu, import CSV, export data, tautan personal, dan template pesan WhatsApp untuk distribusi undangan.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
       {featuredTemplates.length > 0 && (
         <section className="showcase">
           <div className="showcaseTrack" aria-hidden="true">

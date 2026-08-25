@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+Allow: /admin/assets/
+Allow: /admin/template_preview.php
+Disallow: /admin/guestbook/
+Disallow: /admin/storage/
+Disallow: /admin/login.php
+Disallow: /admin/logout.php
+Disallow: /admin/new.php
+Disallow: /admin/editor.php
+Disallow: /admin/guests.php
+Disallow: /admin/customers.php
+Disallow: /admin/prices.php
+Disallow: /admin/customer_login.php
+
+Sitemap: https://invitation.d-webindigital.web.id/sitemap.xml

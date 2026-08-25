@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   base: '/',
+  publicDir: 'landing-react/public',
   plugins: [react()],
   build: {
     outDir: 'landing-dist',

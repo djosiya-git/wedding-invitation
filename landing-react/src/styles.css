@@ -386,6 +386,12 @@ a {
     linear-gradient(135deg, #f5fcff 0%, #dff4ff 100%);
 }
 
+.faqBand {
+  background:
+    radial-gradient(circle at 82% 0%, rgba(86, 196, 244, .18), transparent 20rem),
+    linear-gradient(180deg, #ffffff 0%, #eefaff 100%);
+}
+
 .features,
 .steps,
 .useCases {
@@ -499,6 +505,40 @@ a {
   grid-template-columns: minmax(0, 1fr) 390px;
   gap: 34px;
   align-items: center;
+}
+
+.faqGrid {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  gap: 34px;
+  align-items: start;
+}
+
+.faqList {
+  display: grid;
+  gap: 12px;
+}
+
+.faqList article {
+  border: 1px solid rgba(22, 136, 199, .18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .9);
+  box-shadow: 0 16px 44px rgba(22, 136, 199, .08);
+  padding: 18px;
+}
+
+.faqList b {
+  display: block;
+  font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  font-size: 24px;
+  line-height: 1.12;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.faqList p {
+  margin: 0;
+  color: #2f5f7c;
 }
 
 .guestbookCard {
@@ -1003,6 +1043,7 @@ a {
   .introGrid,
   .ctaGrid,
   .guestbookGrid,
+  .faqGrid,
   .templateToolbar,
   .templateGrid {
     grid-template-columns: 1fr;
