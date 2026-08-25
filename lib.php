@@ -716,12 +716,66 @@ function apply_guest_barcode(string $html, array $inv, ?array $guest): string {
     $barcodeUrl = guest_barcode_url($inv, $guest);
     $css = <<<'HTML'
 <style id="dwebin-guest-barcode-style">
-.dwebin-guest-barcode{position:fixed;right:18px;bottom:18px;z-index:99999;width:min(232px,calc(100vw - 36px));padding:12px 12px 10px;border:1px solid rgba(15,111,165,.22);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:0 18px 44px rgba(12,57,86,.18);backdrop-filter:blur(14px);font-family:Arial,Helvetica,sans-serif;color:#172636;text-align:center}.dwebin-guest-barcode b{display:block;margin:0 0 8px;font-size:12px;line-height:1.2;letter-spacing:.08em;text-transform:uppercase;color:#0f6fa5}.dwebin-guest-barcode img{display:block;width:100%;height:auto;padding:8px;border-radius:10px;background:#fff}.dwebin-guest-barcode span{display:block;margin-top:7px;font-size:11px;font-weight:700;color:#68788a;word-break:break-all}@media(max-width:640px){.dwebin-guest-barcode{right:12px;bottom:12px;width:188px;padding:10px}.dwebin-guest-barcode b{font-size:11px}}
+.dwebin-barcode-trigger{position:fixed;right:18px;bottom:92px;z-index:99998;display:grid;place-items:center;width:48px;height:48px;border:1px solid rgba(15,111,165,.24);border-radius:16px;background:rgba(255,255,255,.94);box-shadow:0 14px 34px rgba(12,57,86,.18);backdrop-filter:blur(14px);cursor:pointer;padding:0}.dwebin-barcode-trigger svg{width:24px;height:24px;display:block}.dwebin-barcode-trigger:hover{transform:translateY(-1px);box-shadow:0 18px 38px rgba(12,57,86,.23)}.dwebin-barcode-modal{position:fixed;inset:0;z-index:100000;display:none;place-items:center;padding:22px;background:rgba(7,27,40,.58);backdrop-filter:blur(8px)}.dwebin-barcode-modal.is-open{display:grid}.dwebin-barcode-card{width:min(340px,calc(100vw - 44px));border:1px solid rgba(15,111,165,.24);border-radius:24px;background:#fff;box-shadow:0 24px 70px rgba(7,27,40,.28);padding:18px;text-align:center;font-family:Arial,Helvetica,sans-serif;color:#172636}.dwebin-barcode-card h3{margin:0 0 12px!important;font:800 16px/1.2 Arial,Helvetica,sans-serif!important;color:#0f6fa5!important}.dwebin-barcode-card img{display:block;width:100%;aspect-ratio:1/1;height:auto;border-radius:18px;background:#fff}.dwebin-barcode-card span{display:block;margin-top:10px;font-size:12px;font-weight:800;color:#68788a;word-break:break-all}.dwebin-barcode-close{margin-top:14px;width:100%;min-height:42px;border:0;border-radius:14px;background:#0f6fa5;color:#fff;font:800 14px/1 Arial,Helvetica,sans-serif;cursor:pointer}@media(max-width:640px){.dwebin-barcode-trigger{right:12px;bottom:82px;width:44px;height:44px;border-radius:14px}.dwebin-barcode-card{width:min(310px,calc(100vw - 34px));padding:14px;border-radius:20px}}
 </style>
 HTML;
-    $card = '<div class="dwebin-guest-barcode" aria-label="Barcode check-in tamu"><b>Barcode Check-in</b><img src="'.e($barcodeUrl).'" alt="Barcode '.e($code).'" loading="lazy"><span>'.e($code).'</span></div>';
+    $script = <<<'HTML'
+<script>
+(function(){
+  var trigger = document.querySelector('.dwebin-barcode-trigger');
+  var modal = document.querySelector('.dwebin-barcode-modal');
+  if (!trigger || !modal) return;
+  function positionTrigger(){
+    var audio = document.querySelector('.idb-audio-box');
+    if (!audio) return;
+    var rect = audio.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    trigger.style.bottom = Math.max(12, window.innerHeight - rect.top + 10) + 'px';
+    trigger.style.right = Math.max(12, window.innerWidth - rect.right) + 'px';
+  }
+  trigger.addEventListener('click', function(){ modal.classList.add('is-open'); });
+  modal.addEventListener('click', function(event){ if (event.target === modal || event.target.closest('.dwebin-barcode-close')) modal.classList.remove('is-open'); });
+  document.addEventListener('keydown', function(event){ if (event.key === 'Escape') modal.classList.remove('is-open'); });
+  window.addEventListener('resize', positionTrigger);
+  document.addEventListener('DOMContentLoaded', positionTrigger);
+  window.addEventListener('load', positionTrigger);
+  setTimeout(positionTrigger, 400);
+  setTimeout(positionTrigger, 1200);
+})();
+</script>
+HTML;
+    $icon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#0f6fa5" d="M4 4h7v7H4V4Zm2 2v3h3V6H6Zm7-2h7v7h-7V4Zm2 2v3h3V6h-3ZM4 13h7v7H4v-7Zm2 2v3h3v-3H6Zm8-2h2v2h-2v-2Zm4 0h2v2h-2v-2Zm-4 4h2v3h-2v-3Zm3-1h3v4h-2v-2h-1v-2Z"/></svg>';
+    $card = '<button class="dwebin-barcode-trigger" type="button" aria-label="Tampilkan barcode check-in">'.$icon.'</button><div class="dwebin-barcode-modal" aria-hidden="true"><div class="dwebin-barcode-card" role="dialog" aria-label="Barcode check-in tamu"><h3>Barcode Check-in</h3><img src="'.e($barcodeUrl).'" alt="Barcode '.e($code).'" loading="lazy"><span>'.e($code).'</span><button class="dwebin-barcode-close" type="button">Tutup</button></div></div>';
     if (stripos($html, 'dwebin-guest-barcode-style') === false) $html = str_ireplace('</head>', $css.'</head>', $html);
-    return str_ireplace('</body>', $card.'</body>', $html);
+    return str_ireplace('</body>', $card.$script.'</body>', $html);
+}
+function guest_qr_svg(string $text): string {
+    $cached = qr_server_png($text);
+    $logoPath = __DIR__.'/assets/brand/d-webin-logo.svg';
+    $logo = is_file($logoPath) ? base64_encode((string)file_get_contents($logoPath)) : '';
+    if ($cached === '') return square_code128_svg($text, $logo);
+    $safeLabel = e($text);
+    $image = e('data:image/png;base64,'.$cached);
+    $logoImage = $logo !== '' ? '<rect x="132" y="132" width="76" height="76" rx="20" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="145" y="145" width="50" height="50"/>' : '';
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340" viewBox="0 0 340 340" role="img" aria-label="'.$safeLabel.'"><rect width="340" height="340" rx="28" fill="#fff"/><image href="'.$image.'" x="0" y="0" width="340" height="340"/>'.$logoImage.'</svg>';
+}
+function qr_server_png(string $text): string {
+    $cacheDir = __DIR__.'/storage/barcodes';
+    if (!is_dir($cacheDir)) @mkdir($cacheDir, 0775, true);
+    $cache = $cacheDir.'/'.sha1($text).'.png';
+    if (is_file($cache)) return base64_encode((string)file_get_contents($cache));
+    $url = 'https://api.qrserver.com/v1/create-qr-code/?size=340x340&ecc=H&margin=12&data='.rawurlencode($text);
+    $context = stream_context_create(['http' => ['timeout' => 4], 'ssl' => ['verify_peer' => true, 'verify_peer_name' => true]]);
+    $png = @file_get_contents($url, false, $context);
+    if (!is_string($png) || substr($png, 0, 8) !== "\x89PNG\r\n\x1a\n") return '';
+    @file_put_contents($cache, $png);
+    return base64_encode($png);
+}
+function square_code128_svg(string $text, string $logo = ''): string {
+    $barcode = code128_svg($text);
+    $encoded = base64_encode($barcode);
+    $logoImage = $logo !== '' ? '<rect x="132" y="132" width="76" height="76" rx="20" fill="#fff"/><image href="data:image/svg+xml;base64,'.$logo.'" x="145" y="145" width="50" height="50"/>' : '';
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="340" height="340" viewBox="0 0 340 340" role="img" aria-label="'.e($text).'"><rect width="340" height="340" rx="28" fill="#fff"/><image href="data:image/svg+xml;base64,'.$encoded.'" x="30" y="132" width="280" height="76"/>'.$logoImage.'</svg>';
 }
 function code128_svg(string $text): string {
     $patterns = [
